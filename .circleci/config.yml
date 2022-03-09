@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: cimg/go:1.17.5
+    steps:
+      - checkout
+      - run: make test
+      - run: make lint
+      - run: make build
+
+workflows:
+  version: 2
+  all:
+    jobs:
+      - build

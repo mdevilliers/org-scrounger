@@ -9,6 +9,17 @@ else
 	GOLANGCI_LINT_ARCHIVE=golangci-lint-$(GOLANGCI_LINT_VERSION)-linux-amd64.tar.gz
 endif
 
+# Build a binary
+.PHONY: build
+build: CMD = ./cmd/team-reporter
+build:
+	go build $(CMD)
+
+.PHONY: test
+# Run test suite
+test:
+	go test -v ./...
+
 # the linting gods must be obeyed
 .PHONY: lint
 lint: $(BIN_OUTDIR)/golangci-lint/golangci-lint

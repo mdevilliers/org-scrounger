@@ -11,7 +11,8 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name: "team-reporter",
+		Name:  "team-reporter",
+		Usage: "",
 		Action: func(c *cli.Context) error {
 			return nil
 		},

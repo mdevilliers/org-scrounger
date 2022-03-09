@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Team Report</title>
+    <!--link rel="stylesheet" href="/go/src/html-to-pdf/templates/style.css" media="all" /-->
+  </head>
+  <body>
+    <h1 id="menu">Repos</h1>
+    {{ range $key, $value := .}}
+    <a href="#{{$key}}">{{$key}}</a><br/>
+    {{ end }}
+
+{{range .}}
+<div id="{{.Name}}"><h2><a href="{{.Url}}">{{.Name}}</a></h2> <a href="#menu">back</a></div>
+<h3>Pull Requests</h3>
+{{ if .PullRequests.Nodes }}
+<table>
+  <tr align="left">
+    <th>Created</th>
+    <th>Build</th>
+    <th>Mergeable</th>
+    <th>Who</th>
+    <th></th> 
+  </tr> 
+{{ range .PullRequests.Nodes}}
+  <tr>
+    <td> {{ ago ( .CreatedAt | github_toDateTime ) }} ago </td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.Status.State "SUCCESS"}}	✅ {{ else }} 🚫 {{ end }} {{ end }}</td>
+    <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
+    <td> {{ .Author.Login}} </td>
+    <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>
+  </tr>
+{{ end }}
+</table>
+{{else}}
+  No open pull requests
+{{end}}
+
+<h3>Vulnerability Alerts</h3>
+      {{ $url := .Url}}
+      {{ $p := (predicate_severity .VulnerabilityAlerts "CRITICAL" "HIGH") }}
+{{ if $p.Edges }}
+<table>
+  <tr align="left">
+    <th>Created</th>
+    <th>Severity</th>
+    <th>Eco Systeme</th>
+    <th>What</th> 
+    <th>Link</td>
+  </tr> 
+      {{ range $p.Edges }}
+        <tr>
+          <td>{{ ago (.Node.CreatedAt | github_toDateTime) }} ago </td>
+          <td>{{ .Node.SecurityVulnerability.Severity }} </td> 
+          <td>{{ .Node.SecurityVulnerability.Package.Ecosystem }} </td>
+          <td>{{ .Node.VulnerableManifestPath }} {{ .Node.SecurityVulnerability.Package.Name }}
+          {{ .Node.VulnerableRequirements }}
+          {{ if .Node.SecurityVulnerability.FirstPatchedVersion }}
+            Fixed in {{ .Node.SecurityVulnerability.FirstPatchedVersion.Identifier }}
+          {{ end}}
+          </td>
+          <td> <a href="{{ $url }}/security/dependabot/{{ .Node.Number }}">details</a> </td> 
+          </tr>
+          <td colspan=5>
+          <small>{{ abbrev 1000 (.Node.SecurityVulnerability.Advisory.Description | github_toString ) }}</small>
+          </td>
+        </tr>
+{{ end }}
+</table>
+{{ else }}
+  No vulnerability alerts
+{{ end }}
+{{ end }}
+  </body>
+</html>

@@ -25,12 +25,12 @@ func GetTeamReportCmd() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "label",
-				Value: "team-ingestion",
+				Value: "",
 				Usage: "specify repository label to predicate on",
 			},
 			&cli.StringFlag{
 				Name:  "owner",
-				Value: "Adarga-Ltd",
+				Value: "",
 				Usage: "github organisation",
 			},
 			&cli.StringFlag{
@@ -43,6 +43,11 @@ func GetTeamReportCmd() *cli.Command {
 				Value: "../../template/index.html",
 				Usage: "specify path to go template, required if --output is html",
 			},
+			&cli.StringSliceFlag{
+				Name:    "not-released",
+				Aliases: []string{"nr"},
+				Usage:   "specify repos that aren't released e.g. a development library or a POC",
+			},
 		},
 		Action: func(c *cli.Context) error {
 
@@ -53,22 +58,58 @@ func GetTeamReportCmd() *cli.Command {
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
 			templateFile := c.Value("template").(string)
+			notReleased := c.Value("not-released").(cli.StringSlice)
+
+			if owner == "" {
+				return errors.New("supply owner")
+			}
+			if label == "" {
+				return errors.New("supply label")
+			}
 
 			repos, err := ghClient.GetReposWithTopic(ctx, owner, label)
 			if err != nil {
 				return err
 			}
 
-			all := map[string]gh.Repository{}
+			type (
+				Details struct {
+					Details           gh.Repository        `json:"details"`
+					UnreleasedCommits gh.UnreleasedCommits `json:"unreleased_commits"`
+				}
+				Data struct {
+					Repositories map[string]Details `json:"repositories"`
+				}
+			)
 
+			all := Data{Repositories: map[string]Details{}}
 			for _, repo := range repos {
 				reponame := repo.Name
-				result, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 
 				if err != nil {
 					return err
 				}
-				all[repo.Name] = result
+
+				all.Repositories[reponame] = Details{
+					Details: repoDetails,
+				}
+
+				isReleased := true
+				for _, nono := range notReleased.Value() {
+					if reponame == nono {
+						isReleased = false
+					}
+				}
+				if isReleased {
+					unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+					if err != nil {
+						return err
+					}
+					detail := all.Repositories[reponame]
+					detail.UnreleasedCommits = unreleasedCommits
+					all.Repositories[reponame] = detail
+				}
 			}
 
 			switch output {

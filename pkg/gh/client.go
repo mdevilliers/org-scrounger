@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
@@ -130,4 +131,77 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 		return Repository{}, errors.Wrap(err, "error querying github")
 	}
 	return query.Repository, nil
+}
+
+type (
+	Commit struct {
+		Message string `json:"message"`
+		Oid     string `json:"oid"`
+		Url     string `json:"url"`
+	}
+	UnreleasedCommits struct {
+		Commits []Commit `json:"commits"`
+	}
+)
+
+func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, error) {
+	ret := UnreleasedCommits{}
+
+	// How this should work:
+	// get last tag - should be a release really but things are a bit weird
+	// work through the the commits looking for the oid of the last tag
+	// BUT
+	// The Refs returned aren't consistently ordered (which is why the
+	// graphql is commented out).
+	// SO
+	// We look for a magic string in the list of commits
+	// Shame this org doesn't use releases....
+	var query struct {
+		Repository struct {
+			//		Refs struct {
+			//			Nodes []struct {
+			//				Name   githubv4.String `json:"name"`
+			//				Target struct {
+			//					Oid githubv4.String `json:"oid"`
+			//				} `json:"target"`
+			//			} `json:"nodes"`
+			//		} `graphql:"refs(last:1, refPrefix: \"refs/tags/\")" json:"refs"`
+			Ref struct {
+				Target struct {
+					Commit struct {
+						History struct {
+							Nodes []struct {
+								AbbreviatedOid githubv4.String `json:"oid"`
+								Message        githubv4.String `json:"message"`
+								Url            githubv4.String `json:"url"`
+							} `json:"nodes"`
+						} `json:"history"`
+					} `graphql:"... on Commit" json:"commit"`
+				} `json:"target"`
+			} `graphql:"ref(qualifiedName: \"main\")" json:"ref"`
+		} `graphql:"repository(owner:$owner, name:$name)" json:"repository"`
+	}
+	variables := map[string]interface{}{
+		"owner": githubv4.String(owner),
+		"name":  githubv4.String(reponame),
+	}
+
+	if err := c.graph.Query(ctx, &query, variables); err != nil {
+		return ret, errors.Wrap(err, "error querying github")
+	}
+
+	for _, commit := range query.Repository.Ref.Target.Commit.History.Nodes {
+		message := string(commit.Message)
+		// Why the magic string? - look above for explanation
+		if strings.Contains(message, "chore(release)") {
+			break
+		}
+
+		ret.Commits = append(ret.Commits, Commit{
+			Message: message,
+			Oid:     string(commit.AbbreviatedOid),
+			Url:     string(commit.Url),
+		})
+	}
+	return ret, nil
 }

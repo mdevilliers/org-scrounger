@@ -148,6 +148,7 @@ type (
 	UnreleasedCommits struct {
 		Commits []Commit `json:"commits"`
 		LastTag Tag      `json:"last_tag"`
+		Summary string   `json:"summary"`
 	}
 )
 
@@ -218,6 +219,11 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 			AbbreviatedOid: string(commit.AbbreviatedOid),
 			Url:            string(commit.Url),
 		})
+	}
+
+	if len(ret.Commits) == len(query.Repository.Ref.Target.Commit.History.Nodes) {
+		ret.Summary = fmt.Sprintf("%d commits since the last tag. Are there any tags for the repo? Or mabe the last tagget commit isn't listed in the commits. Last tag: %s (%s) ", len(ret.Commits), ret.LastTag.Tag, ret.LastTag.Oid)
+
 	}
 	return ret, nil
 }

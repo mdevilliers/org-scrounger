@@ -14,6 +14,7 @@
 <div id="{{.Details.Name}}"><h2><a href="{{.Details.Url}}">{{.Details.Name}}</a></h2> <a href="#menu">back</a></div>
 <h3>Unreleased Commits</h3>
 {{ if .UnreleasedCommits.Commits}}
+{{ if .UnreleasedCommits.Summary}}<div> {{.UnreleasedCommits.Summary}} </div> {{end}}
 <table>
   <tr align="left">
     <th>Commit</th>

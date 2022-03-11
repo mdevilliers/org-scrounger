@@ -61,10 +61,10 @@ func GetTeamReportCmd() *cli.Command {
 			notReleased := c.Value("not-released").(cli.StringSlice)
 
 			if owner == "" {
-				return errors.New("supply owner")
+				return errors.New("Error : supply owner")
 			}
 			if label == "" {
-				return errors.New("supply label")
+				return errors.New("Error : supply label")
 			}
 
 			repos, err := ghClient.GetReposWithTopic(ctx, owner, label)

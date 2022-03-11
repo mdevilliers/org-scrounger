@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
@@ -135,9 +134,10 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 
 type (
 	Commit struct {
-		Message string `json:"message"`
-		Oid     string `json:"oid"`
-		Url     string `json:"url"`
+		Message        string `json:"message"`
+		AbbreviatedOid string `json:"abbreviated_oid"`
+		Oid            string `json:"oid"`
+		Url            string `json:"url"`
 	}
 	UnreleasedCommits struct {
 		Commits []Commit `json:"commits"`
@@ -147,31 +147,25 @@ type (
 func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, error) {
 	ret := UnreleasedCommits{}
 
-	// How this should work:
-	// get last tag - should be a release really but things are a bit weird
+	// get last tag - should be a release really but things are a bit weird in this org
 	// work through the the commits looking for the oid of the last tag
-	// BUT
-	// The Refs returned aren't consistently ordered (which is why the
-	// graphql is commented out).
-	// SO
-	// We look for a magic string in the list of commits
-	// Shame this org doesn't use releases....
 	var query struct {
 		Repository struct {
-			//		Refs struct {
-			//			Nodes []struct {
-			//				Name   githubv4.String `json:"name"`
-			//				Target struct {
-			//					Oid githubv4.String `json:"oid"`
-			//				} `json:"target"`
-			//			} `json:"nodes"`
-			//		} `graphql:"refs(last:1, refPrefix: \"refs/tags/\")" json:"refs"`
+			Refs struct {
+				Nodes []struct {
+					Name   githubv4.String `json:"name"`
+					Target struct {
+						Oid githubv4.String `json:"oid"`
+					} `json:"target"`
+				} `json:"nodes"`
+			} `graphql:"refs(last:1, refPrefix: \"refs/tags/\", orderBy: {field: TAG_COMMIT_DATE, direction: ASC}  )" json:"refs"`
 			Ref struct {
 				Target struct {
 					Commit struct {
 						History struct {
 							Nodes []struct {
-								AbbreviatedOid githubv4.String `json:"oid"`
+								AbbreviatedOid githubv4.String `json:"abbreviated_oid"`
+								Oid            githubv4.String `json:"oid"`
 								Message        githubv4.String `json:"message"`
 								Url            githubv4.String `json:"url"`
 							} `json:"nodes"`
@@ -190,17 +184,20 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 		return ret, errors.Wrap(err, "error querying github")
 	}
 
+	latestTagOid := "unknown"
+	if len(query.Repository.Refs.Nodes) == 1 {
+		latestTagOid = string(query.Repository.Refs.Nodes[0].Target.Oid)
+	}
 	for _, commit := range query.Repository.Ref.Target.Commit.History.Nodes {
-		message := string(commit.Message)
-		// Why the magic string? - look above for explanation
-		if strings.Contains(message, "chore(release)") {
+		oid := string(commit.Oid)
+		if oid == latestTagOid {
 			break
 		}
-
 		ret.Commits = append(ret.Commits, Commit{
-			Message: message,
-			Oid:     string(commit.AbbreviatedOid),
-			Url:     string(commit.Url),
+			Message:        string(commit.Message),
+			Oid:            string(commit.Oid),
+			AbbreviatedOid: string(commit.AbbreviatedOid),
+			Url:            string(commit.Url),
 		})
 	}
 	return ret, nil

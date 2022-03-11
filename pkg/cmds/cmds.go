@@ -3,6 +3,7 @@ package cmds
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"os"
 
@@ -25,12 +26,17 @@ func GetTeamReportCmd() *cli.Command {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "label",
-				Value: "team-ingestion",
+				Value: "",
 				Usage: "specify repository label to predicate on",
 			},
 			&cli.StringFlag{
+				Name:  "repo",
+				Value: "",
+				Usage: "specify repository name, required if no label is provided",
+			},
+			&cli.StringFlag{
 				Name:  "owner",
-				Value: "Adarga-Ltd",
+				Value: "",
 				Usage: "github organisation",
 			},
 			&cli.StringFlag{
@@ -43,6 +49,11 @@ func GetTeamReportCmd() *cli.Command {
 				Value: "../../template/index.html",
 				Usage: "specify path to go template, required if --output is html",
 			},
+			&cli.StringSliceFlag{
+				Name:    "not-released",
+				Aliases: []string{"nr"},
+				Usage:   "specify repos that aren't released e.g. a development library or a POC",
+			},
 		},
 		Action: func(c *cli.Context) error {
 
@@ -50,25 +61,74 @@ func GetTeamReportCmd() *cli.Command {
 			ghClient := gh.NewClient(ctx)
 
 			label := c.Value("label").(string)
+			repo := c.Value("repo").(string)
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
 			templateFile := c.Value("template").(string)
+			notReleased := c.Value("not-released").(cli.StringSlice)
 
-			repos, err := ghClient.GetReposWithTopic(ctx, owner, label)
-			if err != nil {
-				return err
+			if owner == "" {
+				return errors.New("Error : supply owner")
+			}
+			if label == "" {
+				if repo == "" {
+					return errors.New("Error : supply label or a repo")
+				}
 			}
 
-			all := map[string]gh.Repository{}
+			repos := []gh.RepositorySlim{}
+			var err error
 
+			if repo != "" {
+				repos = append(repos, gh.RepositorySlim{
+					Name: repo,
+					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
+				})
+			} else {
+				repos, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				if err != nil {
+					return err
+				}
+			}
+
+			type (
+				Details struct {
+					Details           gh.Repository        `json:"details"`
+					UnreleasedCommits gh.UnreleasedCommits `json:"unreleased_commits"`
+				}
+				Data struct {
+					Repositories map[string]Details `json:"repositories"`
+				}
+			)
+
+			all := Data{Repositories: map[string]Details{}}
 			for _, repo := range repos {
 				reponame := repo.Name
-				result, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 
 				if err != nil {
 					return err
 				}
-				all[repo.Name] = result
+
+				all.Repositories[reponame] = Details{
+					Details: repoDetails,
+				}
+
+				isReleased := true
+				for _, nono := range notReleased.Value() {
+					if reponame == nono {
+						isReleased = false
+					}
+				}
+				if isReleased {
+					unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+					if err != nil {
+						return err
+					}
+					detail := all.Repositories[reponame]
+					detail.UnreleasedCommits = unreleasedCommits
+					all.Repositories[reponame] = detail
+				}
 			}
 
 			switch output {

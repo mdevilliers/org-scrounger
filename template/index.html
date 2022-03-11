@@ -6,23 +6,43 @@
   </head>
   <body>
     <h1 id="menu">Repos</h1>
-    {{ range $key, $value := .}}
+    {{ range $key, $value := .Repositories}}
     <a href="#{{$key}}">{{$key}}</a><br/>
     {{ end }}
 
-{{range .}}
-<div id="{{.Name}}"><h2><a href="{{.Url}}">{{.Name}}</a></h2> <a href="#menu">back</a></div>
+{{range .Repositories}}
+<div id="{{.Details.Name}}"><h2><a href="{{.Details.Url}}">{{.Details.Name}}</a></h2> <a href="#menu">back</a></div>
+<h3>Unreleased Commits</h3>
+{{ if .UnreleasedCommits.Commits}}
+{{ if .UnreleasedCommits.Summary}}<div> {{.UnreleasedCommits.Summary}} </div> {{end}}
+<table>
+  <tr align="left">
+    <th>Commit</th>
+    <th>Message</th>
+    <th></th> 
+  </tr> 
+  {{range .UnreleasedCommits.Commits}}
+  <tr>
+    <td><a href="{{.Url}}">{{ .AbbreviatedOid}}</a></td> 
+    <td>{{ abbrev 250 .Message }} </td>
+  </tr>
+  {{ end }}
+</table>
+{{ else }}
+No unreleased commits
+{{ end }}
+
 <h3>Pull Requests</h3>
-{{ if .PullRequests.Nodes }}
+{{ if .Details.PullRequests.Nodes }}
 <table>
   <tr align="left">
     <th>Created</th>
     <th>Build</th>
     <th>Mergeable</th>
     <th>Who</th>
-    <th></th> 
+    <th>What</th> 
   </tr> 
-{{ range .PullRequests.Nodes}}
+{{ range .Details.PullRequests.Nodes}}
   <tr>
     <td> {{ ago ( .CreatedAt | github_toDateTime ) }} ago </td>
     <td> {{ range .Commits.Nodes}} {{ if eq .Commit.Status.State "SUCCESS"}}	✅ {{ else }} 🚫 {{ end }} {{ end }}</td>
@@ -37,8 +57,8 @@
 {{end}}
 
 <h3>Vulnerability Alerts</h3>
-      {{ $url := .Url}}
-      {{ $p := (predicate_severity .VulnerabilityAlerts "CRITICAL" "HIGH") }}
+      {{ $url := .Details.Url}}
+      {{ $p := (predicate_severity .Details.VulnerabilityAlerts "CRITICAL" "HIGH") }}
 {{ if $p.Edges }}
 <table>
   <tr align="left">

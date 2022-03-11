@@ -44,6 +44,11 @@ func GetTeamReportCmd() *cli.Command {
 				Value: "json",
 				Usage: "specify output format [html, json]",
 			},
+			&cli.BoolFlag{
+				Name:  "omit-archived",
+				Value: false,
+				Usage: "omit archived repositories",
+			},
 			&cli.StringFlag{
 				Name:  "template",
 				Value: "../../template/index.html",
@@ -66,6 +71,7 @@ func GetTeamReportCmd() *cli.Command {
 			output := c.Value("output").(string)
 			templateFile := c.Value("template").(string)
 			notReleased := c.Value("not-released").(cli.StringSlice)
+			omitArchived := c.Value("omit-archived").(bool)
 
 			if owner == "" {
 				return errors.New("Error : supply owner")
@@ -103,6 +109,9 @@ func GetTeamReportCmd() *cli.Command {
 
 			all := Data{Repositories: map[string]Details{}}
 			for _, repo := range repos {
+				if omitArchived && repo.IsArchived {
+					continue
+				}
 				reponame := repo.Name
 				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 

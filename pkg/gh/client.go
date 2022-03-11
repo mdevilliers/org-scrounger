@@ -26,8 +26,9 @@ func NewClient(ctx context.Context) *client {
 }
 
 type RepositorySlim struct {
-	Name string `json:"name"`
-	Url  string `json:"url"`
+	Name       string `json:"name"`
+	Url        string `json:"url"`
+	IsArchived bool   `json:"is_archived"`
 }
 
 func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]RepositorySlim, error) {
@@ -37,10 +38,11 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			RepositoryCount githubv4.Int `json:"repositoryCount"`
 			Nodes           []struct {
 				Repository struct {
-					Name githubv4.String `json:"name"`
-					Url  githubv4.String `json:"url"`
-				} `graphql:"... on Repository"`
-			}
+					Name       githubv4.String  `json:"name"`
+					Url        githubv4.String  `json:"url"`
+					IsArchived githubv4.Boolean `json:"is_archived"`
+				} `graphql:"... on Repository" json:"repository"`
+			} `json:"nodes"`
 		} `graphql:"search(query:$query, type: REPOSITORY, first: 100)" json:"search"`
 	}
 
@@ -51,19 +53,21 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
 		return nil, errors.Wrap(err, "error querying github")
 	}
-	ret := make([]RepositorySlim, query.Search.RepositoryCount)
-	for i, r := range query.Search.Nodes {
-		ret[i] = RepositorySlim{
-			Name: string(r.Repository.Name),
-			Url:  string(r.Repository.Url),
-		}
+	ret := []RepositorySlim{}
+	for _, r := range query.Search.Nodes {
+		ret = append(ret, RepositorySlim{
+			Name:       string(r.Repository.Name),
+			Url:        string(r.Repository.Url),
+			IsArchived: bool(r.Repository.IsArchived),
+		})
 	}
 	return ret, nil
 }
 
 type Repository struct {
-	Name         githubv4.String `json:"name"`
-	Url          githubv4.String `json:"url"`
+	Name         githubv4.String  `json:"name"`
+	Url          githubv4.String  `json:"url"`
+	IsArchived   githubv4.Boolean `json:"is_archived"`
 	PullRequests struct {
 		Nodes []struct {
 			Title     githubv4.String   `json:"title"`
@@ -222,7 +226,7 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 	}
 
 	if len(ret.Commits) == len(query.Repository.Ref.Target.Commit.History.Nodes) {
-		ret.Summary = fmt.Sprintf("%d commits since the last tag. Are there any tags for the repo? Or mabe the last tagget commit isn't listed in the commits. Last tag: %s (%s) ", len(ret.Commits), ret.LastTag.Tag, ret.LastTag.Oid)
+		ret.Summary = fmt.Sprintf("%d commits since the last tag. Are there any tags for the repo? Or mabe the last tagged commit isn't listed in the commits. Last tag: %s (%s) ", len(ret.Commits), ret.LastTag.Tag, ret.LastTag.Oid)
 
 	}
 	return ret, nil

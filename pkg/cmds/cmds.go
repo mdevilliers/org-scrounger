@@ -3,6 +3,7 @@ package cmds
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"os"
 
@@ -27,6 +28,11 @@ func GetTeamReportCmd() *cli.Command {
 				Name:  "label",
 				Value: "",
 				Usage: "specify repository label to predicate on",
+			},
+			&cli.StringFlag{
+				Name:  "repo",
+				Value: "",
+				Usage: "specify repository name, required if no label is provided",
 			},
 			&cli.StringFlag{
 				Name:  "owner",
@@ -55,6 +61,7 @@ func GetTeamReportCmd() *cli.Command {
 			ghClient := gh.NewClient(ctx)
 
 			label := c.Value("label").(string)
+			repo := c.Value("repo").(string)
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
 			templateFile := c.Value("template").(string)
@@ -64,12 +71,24 @@ func GetTeamReportCmd() *cli.Command {
 				return errors.New("Error : supply owner")
 			}
 			if label == "" {
-				return errors.New("Error : supply label")
+				if repo == "" {
+					return errors.New("Error : supply label or a repo")
+				}
 			}
 
-			repos, err := ghClient.GetReposWithTopic(ctx, owner, label)
-			if err != nil {
-				return err
+			repos := []gh.RepositorySlim{}
+			var err error
+
+			if repo != "" {
+				repos = append(repos, gh.RepositorySlim{
+					Name: repo,
+					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
+				})
+			} else {
+				repos, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				if err != nil {
+					return err
+				}
 			}
 
 			type (

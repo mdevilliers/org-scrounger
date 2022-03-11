@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
@@ -133,6 +134,11 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 }
 
 type (
+	Tag struct {
+		Tag string `json:"tag"`
+		Oid string `json:"oid"`
+	}
+
 	Commit struct {
 		Message        string `json:"message"`
 		AbbreviatedOid string `json:"abbreviated_oid"`
@@ -141,6 +147,7 @@ type (
 	}
 	UnreleasedCommits struct {
 		Commits []Commit `json:"commits"`
+		LastTag Tag      `json:"last_tag"`
 	}
 )
 
@@ -155,10 +162,11 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 				Nodes []struct {
 					Name   githubv4.String `json:"name"`
 					Target struct {
-						Oid githubv4.String `json:"oid"`
+						Oid       githubv4.String `json:"oid"`
+						CommitUrl githubv4.String `json:"commit_url"`
 					} `json:"target"`
 				} `json:"nodes"`
-			} `graphql:"refs(last:1, refPrefix: \"refs/tags/\", orderBy: {field: TAG_COMMIT_DATE, direction: ASC}  )" json:"refs"`
+			} `graphql:"refs(last:1, refPrefix: \"refs/tags/\", orderBy: {field: TAG_COMMIT_DATE, direction: ASC} )" json:"refs"`
 			Ref struct {
 				Target struct {
 					Commit struct {
@@ -185,9 +193,20 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 	}
 
 	latestTagOid := "unknown"
+	ret.LastTag = Tag{Oid: latestTagOid, Tag: "unknown"}
+
 	if len(query.Repository.Refs.Nodes) == 1 {
 		latestTagOid = string(query.Repository.Refs.Nodes[0].Target.Oid)
+		commitUrl := string(query.Repository.Refs.Nodes[0].Target.CommitUrl)
+		// if a tagged commit has two parents, trusting the URL commitUrl
+		// as the Oid is better. Git is complicated...
+		if !strings.Contains(commitUrl, latestTagOid) {
+			bits := strings.Split(commitUrl, "/")
+			latestTagOid = bits[len(bits)-1]
+		}
+		ret.LastTag = Tag{Oid: latestTagOid, Tag: string(query.Repository.Refs.Nodes[0].Name)}
 	}
+
 	for _, commit := range query.Repository.Ref.Target.Commit.History.Nodes {
 		oid := string(commit.Oid)
 		if oid == latestTagOid {

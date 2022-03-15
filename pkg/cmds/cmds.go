@@ -59,6 +59,11 @@ func GetTeamReportCmd() *cli.Command {
 				Aliases: []string{"nr"},
 				Usage:   "specify repos that aren't released e.g. a development library or a POC",
 			},
+			&cli.StringSliceFlag{
+				Name:    "skip",
+				Aliases: []string{"s"},
+				Usage:   "specify repos to skip",
+			},
 		},
 		Action: func(c *cli.Context) error {
 
@@ -71,6 +76,7 @@ func GetTeamReportCmd() *cli.Command {
 			output := c.Value("output").(string)
 			templateFile := c.Value("template").(string)
 			notReleased := c.Value("not-released").(cli.StringSlice)
+			skipList := c.Value("skip").(cli.StringSlice)
 			omitArchived := c.Value("omit-archived").(bool)
 
 			if owner == "" {
@@ -112,7 +118,21 @@ func GetTeamReportCmd() *cli.Command {
 				if omitArchived && repo.IsArchived {
 					continue
 				}
+
 				reponame := repo.Name
+
+				if len(skipList.Value()) > 0 {
+					skipRepo := false
+					for _, r := range skipList.Value() {
+						if r == reponame {
+							skipRepo = true
+						}
+					}
+					if skipRepo {
+						continue
+					}
+				}
+
 				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 
 				if err != nil {

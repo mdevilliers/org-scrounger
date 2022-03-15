@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"path/filepath"
 
 	"github.com/Masterminds/sprig"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
@@ -169,7 +170,8 @@ func GetTeamReportCmd() *cli.Command {
 				os.Stdout.Write(b)
 			case "html":
 
-				tmpl, err := template.New("index.html").Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
+				_, file := filepath.Split(templateFile)
+				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
 
 				if err != nil {
 					return errors.Wrap(err, "error parsing template")

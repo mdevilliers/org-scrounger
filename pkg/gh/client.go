@@ -26,9 +26,10 @@ func NewClient(ctx context.Context) *client {
 }
 
 type RepositorySlim struct {
-	Name       string `json:"name"`
-	Url        string `json:"url"`
-	IsArchived bool   `json:"is_archived"`
+	Name       string   `json:"name"`
+	Url        string   `json:"url"`
+	IsArchived bool     `json:"is_archived"`
+	Topics     []string `json:"topics"`
 }
 
 func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]RepositorySlim, error) {
@@ -36,31 +37,59 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 	var query struct {
 		Search struct {
 			RepositoryCount githubv4.Int `json:"repositoryCount"`
-			Nodes           []struct {
+			PageInfo        struct {
+				HasNextPage githubv4.Boolean `json:"has_next_page"`
+				EndCursor   githubv4.String  `json:"end_cursor"`
+			} `json:"page_info"`
+			Nodes []struct {
 				Repository struct {
-					Name       githubv4.String  `json:"name"`
-					Url        githubv4.String  `json:"url"`
-					IsArchived githubv4.Boolean `json:"is_archived"`
+					Name             githubv4.String  `json:"name"`
+					Url              githubv4.String  `json:"url"`
+					IsArchived       githubv4.Boolean `json:"is_archived"`
+					RepositoryTopics struct {
+						Nodes []struct {
+							Topic struct {
+								Name githubv4.String `json:"name"`
+							} `json:"topic"`
+						} `json:"nodes"`
+					} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
 				} `graphql:"... on Repository" json:"repository"`
 			} `json:"nodes"`
-		} `graphql:"search(query:$query, type: REPOSITORY, first: 100)" json:"search"`
+		} `graphql:"search(query:$query, type: REPOSITORY, first: 100, after: $repositoryCursor)" json:"search"`
+	}
+	queryStr := fmt.Sprintf("org:%s", owner)
+	if topic != "" {
+		queryStr = fmt.Sprintf("topic:%s org:%s", topic, owner)
 	}
 
 	variables := map[string]interface{}{
-		"query": githubv4.String(fmt.Sprintf("topic:%s org:%s", topic, owner)),
+		"query":            githubv4.String(queryStr),
+		"repositoryCursor": (*githubv4.String)(nil),
 	}
 
-	// TODO : add paging beyond the first 100 repos.
-	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return nil, errors.Wrap(err, "error querying github")
-	}
 	ret := []RepositorySlim{}
-	for _, r := range query.Search.Nodes {
-		ret = append(ret, RepositorySlim{
-			Name:       string(r.Repository.Name),
-			Url:        string(r.Repository.Url),
-			IsArchived: bool(r.Repository.IsArchived),
-		})
+	for {
+		if err := c.graph.Query(ctx, &query, variables); err != nil {
+			return nil, errors.Wrap(err, "error querying github")
+		}
+
+		for _, r := range query.Search.Nodes {
+			topics := []string{}
+			for _, t := range r.Repository.RepositoryTopics.Nodes {
+				topics = append(topics, string(t.Topic.Name))
+			}
+			slim := RepositorySlim{
+				Name:       string(r.Repository.Name),
+				Url:        string(r.Repository.Url),
+				IsArchived: bool(r.Repository.IsArchived),
+				Topics:     topics,
+			}
+			ret = append(ret, slim)
+		}
+		if !query.Search.PageInfo.HasNextPage {
+			break
+		}
+		variables["repositoryCursor"] = githubv4.NewString(query.Search.PageInfo.EndCursor)
 	}
 	return ret, nil
 }

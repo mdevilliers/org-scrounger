@@ -65,9 +65,16 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 }
 
 type Repository struct {
-	Name         githubv4.String  `json:"name"`
-	Url          githubv4.String  `json:"url"`
-	IsArchived   githubv4.Boolean `json:"is_archived"`
+	Name             githubv4.String  `json:"name"`
+	Url              githubv4.String  `json:"url"`
+	IsArchived       githubv4.Boolean `json:"is_archived"`
+	RepositoryTopics struct {
+		Nodes []struct {
+			Topic struct {
+				Name githubv4.String `json:"name"`
+			} `json:"topic"`
+		} `json:"nodes"`
+	} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
 	PullRequests struct {
 		Nodes []struct {
 			Title     githubv4.String   `json:"title"`

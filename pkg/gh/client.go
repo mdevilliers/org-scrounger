@@ -50,6 +50,7 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 		"query": githubv4.String(fmt.Sprintf("topic:%s org:%s", topic, owner)),
 	}
 
+	// TODO : add paging beyond the first 100 repos.
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
 		return nil, errors.Wrap(err, "error querying github")
 	}

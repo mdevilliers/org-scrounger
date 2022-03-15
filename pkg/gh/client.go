@@ -57,9 +57,13 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			} `json:"nodes"`
 		} `graphql:"search(query:$query, type: REPOSITORY, first: 100, after: $repositoryCursor)" json:"search"`
 	}
+	queryStr := fmt.Sprintf("org:%s", owner)
+	if topic != "" {
+		queryStr = fmt.Sprintf("topic:%s org:%s", topic, owner)
+	}
 
 	variables := map[string]interface{}{
-		"query":            githubv4.String(fmt.Sprintf("topic:%s org:%s", topic, owner)),
+		"query":            githubv4.String(queryStr),
 		"repositoryCursor": (*githubv4.String)(nil),
 	}
 

@@ -15,10 +15,9 @@ func ListCmd() *cli.Command {
 		Name: "list",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:     "label",
-				Value:    "",
-				Usage:    "specify repository label to predicate on",
-				Required: true,
+				Name:  "label",
+				Value: "",
+				Usage: "specify repository label to predicate on",
 			},
 			&cli.StringFlag{
 				Name:     "owner",

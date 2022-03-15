@@ -50,6 +50,7 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 		"query": githubv4.String(fmt.Sprintf("topic:%s org:%s", topic, owner)),
 	}
 
+	// TODO : add paging beyond the first 100 repos.
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
 		return nil, errors.Wrap(err, "error querying github")
 	}
@@ -65,9 +66,16 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 }
 
 type Repository struct {
-	Name         githubv4.String  `json:"name"`
-	Url          githubv4.String  `json:"url"`
-	IsArchived   githubv4.Boolean `json:"is_archived"`
+	Name             githubv4.String  `json:"name"`
+	Url              githubv4.String  `json:"url"`
+	IsArchived       githubv4.Boolean `json:"is_archived"`
+	RepositoryTopics struct {
+		Nodes []struct {
+			Topic struct {
+				Name githubv4.String `json:"name"`
+			} `json:"topic"`
+		} `json:"nodes"`
+	} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
 	PullRequests struct {
 		Nodes []struct {
 			Title     githubv4.String   `json:"title"`

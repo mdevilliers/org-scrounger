@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"path/filepath"
 
 	"github.com/Masterminds/sprig"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
@@ -42,7 +43,7 @@ func GetTeamReportCmd() *cli.Command {
 			&cli.StringFlag{
 				Name:  "output",
 				Value: "json",
-				Usage: "specify output format [html, json]",
+				Usage: "specify output format [template, json]. Default is json.",
 			},
 			&cli.BoolFlag{
 				Name:  "omit-archived",
@@ -50,9 +51,9 @@ func GetTeamReportCmd() *cli.Command {
 				Usage: "omit archived repositories",
 			},
 			&cli.StringFlag{
-				Name:  "template",
+				Name:  "template-file",
 				Value: "../../template/index.html",
-				Usage: "specify path to go template, required if --output is html",
+				Usage: "specify path to template file. Uses go's template syntax",
 			},
 			&cli.StringSliceFlag{
 				Name:    "not-released",
@@ -74,7 +75,7 @@ func GetTeamReportCmd() *cli.Command {
 			repo := c.Value("repo").(string)
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
-			templateFile := c.Value("template").(string)
+			templateFile := c.Value("template-file").(string)
 			notReleased := c.Value("not-released").(cli.StringSlice)
 			skipList := c.Value("skip").(cli.StringSlice)
 			omitArchived := c.Value("omit-archived").(bool)
@@ -167,9 +168,10 @@ func GetTeamReportCmd() *cli.Command {
 					return errors.Wrap(err, "error marshalling to json")
 				}
 				os.Stdout.Write(b)
-			case "html":
+			case "template":
 
-				tmpl, err := template.New("index.html").Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
+				_, file := filepath.Split(templateFile)
+				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
 
 				if err != nil {
 					return errors.Wrap(err, "error parsing template")
@@ -178,6 +180,8 @@ func GetTeamReportCmd() *cli.Command {
 				if err := tmpl.Execute(os.Stdout, all); err != nil {
 					return errors.Wrap(err, "error executing template")
 				}
+			default:
+				return errors.New("unknown output - needs to be template or json")
 			}
 			return nil
 		},

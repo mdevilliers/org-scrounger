@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>PR Report</title>
+    <!--link rel="stylesheet" href="/go/src/html-to-pdf/templates/style.css" media="all" /-->
+  </head>
+  <body>
+
+
+<table>
+  <tr align="left">
+    <th>Created</th>
+    <th>Repo</th>
+    <th>Build</th>
+    <th>Mergeable</th>
+    <th>Who</th>
+    <th>What</th> 
+  </tr>
+
+{{ range $key, $value := .Repositories }}
+{{ range $value.Details.PullRequests.Nodes }}
+  <tr>
+    <td> {{ .CreatedAt | github_toDateTime }} </td>
+    <td> {{ $key }} </td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.Status.State "SUCCESS"}}	✅ {{ else }} 🚫 {{ end }} {{ end }}</td>
+    <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
+    <td> {{ .Author.Login}} </td>
+    <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>
+  </tr>
+{{ end }}
+{{ end }}
+</table>
+</body>
+</html>

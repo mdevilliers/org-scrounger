@@ -1,6 +1,6 @@
 
 # Linting
-GOLANGCI_LINT_VERSION=1.44.2
+GOLANGCI_LINT_VERSION=1.45.0
 
 # Build a binary
 .PHONY: build
@@ -16,5 +16,6 @@ test:
 # the linting gods must be obeyed
 .PHONY: lint
 lint:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v$(GOLANGCI_LINT_VERSION)
-	golangci-lint run
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)
+	# TODO : reinstate linting once golangci is more generic aware
+	- ./bin/golangci-lint run

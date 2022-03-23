@@ -25,12 +25,30 @@ func NewClient(ctx context.Context) *client {
 	}
 }
 
-type RepositorySlim struct {
-	Name       string   `json:"name"`
-	Url        string   `json:"url"`
-	IsArchived bool     `json:"is_archived"`
-	Topics     []string `json:"topics"`
-}
+type (
+	Tag struct {
+		Tag string `json:"tag"`
+		Oid string `json:"oid"`
+	}
+
+	Commit struct {
+		Message        string `json:"message"`
+		AbbreviatedOid string `json:"abbreviated_oid"`
+		Oid            string `json:"oid"`
+		Url            string `json:"url"`
+	}
+	UnreleasedCommits struct {
+		Commits []Commit `json:"commits"`
+		LastTag Tag      `json:"last_tag"`
+		Summary string   `json:"summary"`
+	}
+	RepositorySlim struct {
+		Name       string   `json:"name"`
+		Url        string   `json:"url"`
+		IsArchived bool     `json:"is_archived"`
+		Topics     []string `json:"topics"`
+	}
+)
 
 func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]RepositorySlim, error) {
 
@@ -173,25 +191,6 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 	}
 	return query.Repository, nil
 }
-
-type (
-	Tag struct {
-		Tag string `json:"tag"`
-		Oid string `json:"oid"`
-	}
-
-	Commit struct {
-		Message        string `json:"message"`
-		AbbreviatedOid string `json:"abbreviated_oid"`
-		Oid            string `json:"oid"`
-		Url            string `json:"url"`
-	}
-	UnreleasedCommits struct {
-		Commits []Commit `json:"commits"`
-		LastTag Tag      `json:"last_tag"`
-		Summary string   `json:"summary"`
-	}
-)
 
 func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, error) {
 	ret := UnreleasedCommits{}

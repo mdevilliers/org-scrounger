@@ -11,6 +11,7 @@ import (
 	"github.com/Masterminds/sprig"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
+	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
@@ -108,22 +109,15 @@ func ReportCmd() *cli.Command {
 
 			all := Data{Repositories: map[string]Details{}}
 			for _, repo := range repos {
+
+				reponame := repo.Name
+
 				if omitArchived && repo.IsArchived {
 					continue
 				}
 
-				reponame := repo.Name
-
-				if len(skipList.Value()) > 0 {
-					skipRepo := false
-					for _, r := range skipList.Value() {
-						if r == reponame {
-							skipRepo = true
-						}
-					}
-					if skipRepo {
-						continue
-					}
+				if util.Contains(skipList.Value(), reponame) {
+					continue
 				}
 
 				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
@@ -136,13 +130,7 @@ func ReportCmd() *cli.Command {
 					Details: repoDetails,
 				}
 
-				isReleased := true
-				for _, nono := range notReleased.Value() {
-					if reponame == nono {
-						isReleased = false
-					}
-				}
-				if isReleased {
+				if util.Contains(notReleased.Value(), reponame) {
 					unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 					if err != nil {
 						return err

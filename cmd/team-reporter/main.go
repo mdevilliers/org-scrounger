@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"sort"
 
@@ -24,7 +23,7 @@ func main() {
 
 	err := app.Run(os.Args)
 	if err != nil {
-		fmt.Println(err.Error())
+		os.Stderr.WriteString(err.Error())
 		os.Exit(1)
 	}
 }

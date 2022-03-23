@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig"
+	"github.com/alitto/pond"
+	"github.com/hashicorp/go-multierror"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
@@ -108,6 +110,10 @@ func ReportCmd() *cli.Command {
 			)
 
 			all := Data{Repositories: map[string]Details{}}
+			var result error
+
+			pool := pond.New(10, 0, pond.MinWorkers(10))
+
 			for _, repo := range repos {
 
 				reponame := repo.Name
@@ -120,25 +126,36 @@ func ReportCmd() *cli.Command {
 					continue
 				}
 
-				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+				pool.Submit(func() {
 
-				if err != nil {
-					return err
-				}
+					repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 
-				all.Repositories[reponame] = Details{
-					Details: repoDetails,
-				}
-
-				if util.Contains(notReleased.Value(), reponame) {
-					unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 					if err != nil {
-						return err
+						multierror.Append(result, err)
+						return
 					}
-					detail := all.Repositories[reponame]
-					detail.UnreleasedCommits = unreleasedCommits
-					all.Repositories[reponame] = detail
-				}
+
+					all.Repositories[reponame] = Details{
+						Details: repoDetails,
+					}
+
+					if util.Contains(notReleased.Value(), reponame) {
+						unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+						if err != nil {
+							multierror.Append(result, err)
+							return
+						}
+						detail := all.Repositories[reponame]
+						detail.UnreleasedCommits = unreleasedCommits
+						all.Repositories[reponame] = detail
+					}
+				})
+			}
+
+			pool.StopAndWait()
+
+			if result != nil {
+				return result
 			}
 
 			switch output {

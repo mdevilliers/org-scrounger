@@ -35,6 +35,11 @@ func ListCmd() *cli.Command {
 				Value: false,
 				Usage: "omit archived repositories",
 			},
+			&cli.BoolFlag{
+				Name:  "log-rate-limit",
+				Value: false,
+				Usage: "log the rate limit metrics from github",
+			},
 		},
 		Action: func(c *cli.Context) error {
 
@@ -45,8 +50,12 @@ func ListCmd() *cli.Command {
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
 			omitArchived := c.Value("omit-archived").(bool)
+			logRateLimit := c.Value("log-rate-limit").(bool)
 
-			repos, _, err := ghClient.GetReposWithTopic(ctx, owner, label)
+			log := getRateLimitLogger(logRateLimit)
+
+			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, label)
+			log(rateLimit)
 			if err != nil {
 				return err
 			}

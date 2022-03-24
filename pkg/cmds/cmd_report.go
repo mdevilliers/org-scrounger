@@ -103,10 +103,10 @@ func ReportCmd() *cli.Command {
 				})
 			} else {
 				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				log(rateLimit)
 				if err != nil {
 					return err
 				}
-				log(rateLimit)
 			}
 
 			type (

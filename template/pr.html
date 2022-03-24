@@ -4,9 +4,7 @@
     <title>PR Report</title>
     <!--link rel="stylesheet" href="/go/src/html-to-pdf/templates/style.css" media="all" /-->
   </head>
-  <body>
-
-
+<body>
 <table>
   <tr align="left">
     <th>Created</th>
@@ -16,7 +14,6 @@
     <th>Who</th>
     <th>What</th> 
   </tr>
-
 {{ range $key, $value := .Repositories }}
 {{ range $value.Details.PullRequests.Nodes }}
   <tr>

@@ -1,8 +1,8 @@
 package funcs
 
 import (
-	"html/template"
 	"sort"
+	"text/template"
 	"time"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"

@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/Masterminds/sprig"
 	"github.com/alitto/pond"
@@ -179,7 +179,7 @@ func ReportCmd() *cli.Command {
 			case "template":
 
 				_, file := filepath.Split(templateFile)
-				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
+				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
 
 				if err != nil {
 					return errors.Wrap(err, "error parsing template")

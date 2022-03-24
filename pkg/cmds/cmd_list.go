@@ -46,7 +46,7 @@ func ListCmd() *cli.Command {
 			output := c.Value("output").(string)
 			omitArchived := c.Value("omit-archived").(bool)
 
-			repos, err := ghClient.GetReposWithTopic(ctx, owner, label)
+			repos, _, err := ghClient.GetReposWithTopic(ctx, owner, label)
 			if err != nil {
 				return err
 			}

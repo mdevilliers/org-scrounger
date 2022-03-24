@@ -93,7 +93,7 @@ func ReportCmd() *cli.Command {
 					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 				})
 			} else {
-				repos, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				repos, _, err = ghClient.GetReposWithTopic(ctx, owner, label)
 				if err != nil {
 					return err
 				}
@@ -128,7 +128,7 @@ func ReportCmd() *cli.Command {
 
 				pool.Submit(func() {
 
-					repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+					repoDetails, _, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 
 					if err != nil {
 						multierror.Append(result, err)
@@ -140,7 +140,7 @@ func ReportCmd() *cli.Command {
 					}
 
 					if util.Contains(notReleased.Value(), reponame) {
-						unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+						unreleasedCommits, _, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 						if err != nil {
 							multierror.Append(result, err)
 							return

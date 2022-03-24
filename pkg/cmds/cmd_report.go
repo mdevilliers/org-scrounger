@@ -112,7 +112,7 @@ func ReportCmd() *cli.Command {
 			all := Data{Repositories: map[string]Details{}}
 			var result error
 
-			pool := pond.New(10, 0, pond.MinWorkers(10))
+			pool := pond.New(5, 0, pond.MinWorkers(3))
 
 			for _, repo := range repos {
 

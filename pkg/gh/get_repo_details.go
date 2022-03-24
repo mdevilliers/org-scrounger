@@ -74,12 +74,7 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 
 	var query struct {
 		Repository `graphql:"repository(owner:$owner, name:$name)" json:"repository"`
-		RateLimit  struct {
-			Limit     githubv4.Int      `json:"limit"`
-			Cost      githubv4.Int      `json:"cost"`
-			Remaining githubv4.Int      `json:"remaining"`
-			ResetAt   githubv4.DateTime `json:"reset_at"`
-		} `json:"rate_limit"`
+		RateLimit  RateLimit `json:"rate_limit"`
 	}
 
 	variables := map[string]interface{}{

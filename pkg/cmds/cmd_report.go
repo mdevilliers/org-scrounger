@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 
 	"github.com/Masterminds/sprig"
+	"github.com/alitto/pond"
+	"github.com/hashicorp/go-multierror"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
@@ -46,6 +48,11 @@ func ReportCmd() *cli.Command {
 				Value: false,
 				Usage: "omit archived repositories",
 			},
+			&cli.BoolFlag{
+				Name:  "log-rate-limit",
+				Value: false,
+				Usage: "log the rate limit metrics from github",
+			},
 			&cli.StringFlag{
 				Name:  "template-file",
 				Value: "../../template/index.html",
@@ -75,6 +82,9 @@ func ReportCmd() *cli.Command {
 			notReleased := c.Value("not-released").(cli.StringSlice)
 			skipList := c.Value("skip").(cli.StringSlice)
 			omitArchived := c.Value("omit-archived").(bool)
+			logRateLimit := c.Value("log-rate-limit").(bool)
+
+			log := getRateLimitLogger(logRateLimit)
 
 			if label == "" {
 				if repo == "" {
@@ -84,6 +94,7 @@ func ReportCmd() *cli.Command {
 
 			repos := []gh.RepositorySlim{}
 			var err error
+			var rateLimit gh.RateLimit
 
 			if repo != "" {
 				repos = append(repos, gh.RepositorySlim{
@@ -91,10 +102,11 @@ func ReportCmd() *cli.Command {
 					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 				})
 			} else {
-				repos, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, label)
 				if err != nil {
 					return err
 				}
+				log(rateLimit)
 			}
 
 			type (
@@ -108,6 +120,10 @@ func ReportCmd() *cli.Command {
 			)
 
 			all := Data{Repositories: map[string]Details{}}
+			var result error
+
+			pool := pond.New(5, 0, pond.MinWorkers(3))
+
 			for _, repo := range repos {
 
 				reponame := repo.Name
@@ -120,25 +136,37 @@ func ReportCmd() *cli.Command {
 					continue
 				}
 
-				repoDetails, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+				pool.Submit(func() {
 
-				if err != nil {
-					return err
-				}
-
-				all.Repositories[reponame] = Details{
-					Details: repoDetails,
-				}
-
-				if util.Contains(notReleased.Value(), reponame) {
-					unreleasedCommits, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+					repoDetails, rateLimit, err := ghClient.GetRepoDetails(ctx, owner, reponame)
+					log(rateLimit)
 					if err != nil {
-						return err
+						multierror.Append(result, err)
+						return
 					}
-					detail := all.Repositories[reponame]
-					detail.UnreleasedCommits = unreleasedCommits
-					all.Repositories[reponame] = detail
-				}
+
+					all.Repositories[reponame] = Details{
+						Details: repoDetails,
+					}
+
+					if util.Contains(notReleased.Value(), reponame) {
+						unreleasedCommits, rateLimit, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
+						log(rateLimit)
+						if err != nil {
+							multierror.Append(result, err)
+							return
+						}
+						detail := all.Repositories[reponame]
+						detail.UnreleasedCommits = unreleasedCommits
+						all.Repositories[reponame] = detail
+					}
+				})
+			}
+
+			pool.StopAndWait()
+
+			if result != nil {
+				return result
 			}
 
 			switch output {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -120,6 +121,7 @@ func ReportCmd() *cli.Command {
 			)
 
 			all := Data{Repositories: map[string]Details{}}
+			allmutex := sync.Mutex{}
 			var result error
 
 			pool := pond.New(5, 0, pond.MinWorkers(3))
@@ -144,6 +146,8 @@ func ReportCmd() *cli.Command {
 						multierror.Append(result, err)
 						return
 					}
+					allmutex.Lock()
+					defer allmutex.Unlock()
 
 					all.Repositories[reponame] = Details{
 						Details: repoDetails,

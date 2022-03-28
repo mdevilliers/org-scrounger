@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"os"
 	"path/filepath"
+	"sync"
+	"text/template"
 
 	"github.com/Masterminds/sprig"
 	"github.com/alitto/pond"
@@ -120,6 +121,7 @@ func ReportCmd() *cli.Command {
 			)
 
 			all := Data{Repositories: map[string]Details{}}
+			allmutex := sync.Mutex{}
 			var result error
 
 			pool := pond.New(5, 0, pond.MinWorkers(3))
@@ -144,6 +146,8 @@ func ReportCmd() *cli.Command {
 						multierror.Append(result, err)
 						return
 					}
+					allmutex.Lock()
+					defer allmutex.Unlock()
 
 					all.Repositories[reponame] = Details{
 						Details: repoDetails,
@@ -179,7 +183,7 @@ func ReportCmd() *cli.Command {
 			case "template":
 
 				_, file := filepath.Split(templateFile)
-				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.FuncMap()).ParseFiles(templateFile)
+				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
 
 				if err != nil {
 					return errors.Wrap(err, "error parsing template")

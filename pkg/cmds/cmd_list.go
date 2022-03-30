@@ -15,9 +15,9 @@ func ListCmd() *cli.Command {
 		Name: "list",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "label",
+				Name:  "topic",
 				Value: "",
-				Usage: "specify repository label to predicate on",
+				Usage: "specify repository topic to predicate on",
 			},
 			&cli.StringFlag{
 				Name:     "owner",
@@ -46,7 +46,7 @@ func ListCmd() *cli.Command {
 			ctx := context.Background()
 			ghClient := gh.NewClient(ctx)
 
-			label := c.Value("label").(string)
+			topic := c.Value("topic").(string)
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
 			omitArchived := c.Value("omit-archived").(bool)
@@ -54,7 +54,7 @@ func ListCmd() *cli.Command {
 
 			log := getRateLimitLogger(logRateLimit)
 
-			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, label)
+			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, topic)
 			log(rateLimit)
 			if err != nil {
 				return err

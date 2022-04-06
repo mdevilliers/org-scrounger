@@ -142,7 +142,6 @@ func ReportCmd() *cli.Command {
 					repoDetails, rateLimit, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 					log(rateLimit)
 					if err != nil {
-
 						result = multierror.Append(result, err)
 						return
 					}

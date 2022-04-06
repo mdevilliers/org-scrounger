@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -23,9 +24,9 @@ func ReportCmd() *cli.Command {
 		Name: "report",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name:  "label",
+				Name:  "topic",
 				Value: "",
-				Usage: "specify repository label to predicate on",
+				Usage: "specify repository topic to predicate on",
 			},
 			&cli.StringFlag{
 				Name:  "repo",
@@ -74,7 +75,7 @@ func ReportCmd() *cli.Command {
 			ctx := context.Background()
 			ghClient := gh.NewClient(ctx)
 
-			label := c.Value("label").(string)
+			topic := c.Value("topic").(string)
 			repo := c.Value("repo").(string)
 			owner := c.Value("owner").(string)
 			output := c.Value("output").(string)
@@ -86,9 +87,9 @@ func ReportCmd() *cli.Command {
 
 			log := getRateLimitLogger(logRateLimit)
 
-			if label == "" {
+			if topic == "" {
 				if repo == "" {
-					return errors.New("Error : supply label or a repo")
+					return errors.New("Error : supply topic or a repo")
 				}
 			}
 
@@ -102,7 +103,7 @@ func ReportCmd() *cli.Command {
 					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 				})
 			} else {
-				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, label)
+				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, topic)
 				log(rateLimit)
 				if err != nil {
 					return err
@@ -120,8 +121,8 @@ func ReportCmd() *cli.Command {
 			)
 
 			all := Data{Repositories: map[string]Details{}}
-			var result error
-
+			allmutex := sync.Mutex{}
+			var result *multierror.Error
 			pool := pond.New(5, 0, pond.MinWorkers(3))
 
 			for _, repo := range repos {
@@ -144,6 +145,8 @@ func ReportCmd() *cli.Command {
 						multierror.Append(result, err)
 						return
 					}
+					allmutex.Lock()
+					defer allmutex.Unlock()
 
 					all.Repositories[reponame] = Details{
 						Details: repoDetails,
@@ -164,8 +167,7 @@ func ReportCmd() *cli.Command {
 			}
 
 			pool.StopAndWait()
-
-			if result != nil {
+			if result.ErrorOrNil() != nil {
 				return result
 			}
 

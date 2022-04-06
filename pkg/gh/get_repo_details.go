@@ -8,9 +8,19 @@ import (
 )
 
 type Repository struct {
-	Name             githubv4.String  `json:"name"`
-	Url              githubv4.String  `json:"url"`
-	IsArchived       githubv4.Boolean `json:"is_archived"`
+	Name       githubv4.String  `json:"name"`
+	Url        githubv4.String  `json:"url"`
+	IsArchived githubv4.Boolean `json:"is_archived"`
+	Ref        struct {
+		Target struct {
+			Commit struct {
+				Message githubv4.String `json:"message"`
+				Status  struct {
+					State githubv4.String `json:"state"`
+				} `json:"status"`
+			} `graphql:"... on Commit" json:"commit"`
+		} `json:"target"`
+	} `graphql:"ref(qualifiedName: \"main\" )" json:"ref"`
 	RepositoryTopics struct {
 		Nodes []struct {
 			Topic struct {

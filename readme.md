@@ -21,8 +21,8 @@ go build
 ./team-reporter -h
 
 # run some reports
-./team-reporter report --output template --label foo --owner some-owner > team-foo.html # outputs html for all repos with tag
-./team-reporter report --label foo --owner some-owner  # outputs json
+./team-reporter report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
+./team-reporter report --topic foo --owner some-owner  # outputs json
 ./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 

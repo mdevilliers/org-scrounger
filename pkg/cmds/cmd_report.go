@@ -142,7 +142,7 @@ func ReportCmd() *cli.Command {
 					repoDetails, rateLimit, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 					log(rateLimit)
 					if err != nil {
-						multierror.Append(result, err)
+						result = multierror.Append(result, err)
 						return
 					}
 					allmutex.Lock()
@@ -156,7 +156,7 @@ func ReportCmd() *cli.Command {
 						unreleasedCommits, rateLimit, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 						log(rateLimit)
 						if err != nil {
-							multierror.Append(result, err)
+							result = multierror.Append(result, err)
 							return
 						}
 						detail := all.Repositories[reponame]

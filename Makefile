@@ -1,6 +1,6 @@
 
 # Linting
-GOLANGCI_LINT_VERSION=1.45.0
+GOLANGCI_LINT_VERSION=1.45.1
 
 # Build a binary
 .PHONY: build
@@ -17,5 +17,4 @@ test:
 .PHONY: lint
 lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)
-	# TODO : reinstate linting once golangci is more generic aware
-	- ./bin/golangci-lint run
+	./bin/golangci-lint run

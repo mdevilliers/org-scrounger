@@ -13,25 +13,26 @@ func FuncMap() map[string]interface{} {
 	return template.FuncMap{
 
 		// helpers to deal with the githubv4 types
-		"github_toString":   func(s githubv4.String) string { return string(s) },
-		"github_toDateTime": func(s githubv4.DateTime) time.Time { return s.Time },
-
-		"predicate_severity": func(va gh.VulnerabilityAlerts, severity ...string) gh.VulnerabilityAlerts {
-			ret := gh.VulnerabilityAlerts{}
-			for i := range va.Edges {
-				s := va.Edges[i].Node.SecurityVulnerability.Severity
-				for _, sev := range severity {
-					if string(s) == sev {
-						ret.Edges = append(ret.Edges, va.Edges[i])
-						break
-					}
-				}
-			}
-
-			sort.Sort(BySeverity(ret.Edges))
-			return ret
-		},
+		"github_toString":    func(s githubv4.String) string { return string(s) },
+		"github_toDateTime":  func(s githubv4.DateTime) time.Time { return s.Time },
+		"predicate_severity": PredicateOnSeverity,
 	}
+}
+
+func PredicateOnSeverity(va gh.VulnerabilityAlerts, severity ...string) gh.VulnerabilityAlerts {
+	ret := gh.VulnerabilityAlerts{}
+	for i := range va.Edges {
+		s := va.Edges[i].Node.SecurityVulnerability.Severity
+		for _, sev := range severity {
+			if string(s) == sev {
+				ret.Edges = append(ret.Edges, va.Edges[i])
+				break
+			}
+		}
+	}
+
+	sort.Sort(BySeverity(ret.Edges))
+	return ret
 }
 
 type BySeverity gh.Edges

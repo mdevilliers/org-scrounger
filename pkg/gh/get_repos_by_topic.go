@@ -45,9 +45,13 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 	}
 
 	ret := []RepositorySlim{}
+
+	// keep count of the aggregated RateLimit responses
+	rl := RateLimit{}
+
 	for {
 		if err := c.graph.Query(ctx, &query, variables); err != nil {
-			return nil, query.RateLimit, errors.Wrap(err, "error querying github")
+			return nil, rl, errors.Wrap(err, "error querying github")
 		}
 		for _, r := range query.Search.Nodes {
 			topics := []string{}
@@ -62,10 +66,13 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			}
 			ret = append(ret, slim)
 		}
+
+		rl = rl.Add(query.RateLimit)
+
 		if !query.Search.PageInfo.HasNextPage {
 			break
 		}
 		variables["repositoryCursor"] = githubv4.NewString(query.Search.PageInfo.EndCursor)
 	}
-	return ret, query.RateLimit, nil
+	return ret, rl, nil
 }

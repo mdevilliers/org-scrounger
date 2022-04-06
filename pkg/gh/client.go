@@ -50,3 +50,11 @@ func NewClient(ctx context.Context) *client {
 		graph: githubv4.NewClient(httpClient),
 	}
 }
+
+func (rl RateLimit) Add(rl2 RateLimit) RateLimit {
+	rl.Cost += rl2.Cost
+	rl.Limit = rl2.Limit
+	rl.Remaining = rl2.Remaining
+	rl.ResetAt = rl2.ResetAt
+	return rl
+}

@@ -30,31 +30,25 @@ type (
 		IsArchived bool     `json:"is_archived"`
 		Topics     []string `json:"topics"`
 	}
-	RateLimit struct {
-		Limit     githubv4.Int      `json:"limit"`
-		Cost      githubv4.Int      `json:"cost"`
-		Remaining githubv4.Int      `json:"remaining"`
-		ResetAt   githubv4.DateTime `json:"reset_at"`
-	}
+
 	client struct {
 		graph *githubv4.Client
 	}
 )
 
-func NewClient(ctx context.Context) *client {
+// NewClientFromEnv returns a configured client using the env var GITHUB_TOKEN
+func NewClientFromEnv(ctx context.Context) *client {
+	token := os.Getenv("GITHUB_TOKEN")
+	return NewClientFromGithubPAT(ctx, token)
+}
+
+//NewClientFromGithubPAT returns a configured client using the supplied Github PAT
+func NewClientFromGithubPAT(ctx context.Context, token string) *client {
 	src := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: os.Getenv("GITHUB_TOKEN")},
+		&oauth2.Token{AccessToken: token},
 	)
 	httpClient := oauth2.NewClient(ctx, src)
 	return &client{
 		graph: githubv4.NewClient(httpClient),
 	}
-}
-
-func (rl RateLimit) Add(rl2 RateLimit) RateLimit {
-	rl.Cost += rl2.Cost
-	rl.Limit = rl2.Limit
-	rl.Remaining = rl2.Remaining
-	rl.ResetAt = rl2.ResetAt
-	return rl
 }

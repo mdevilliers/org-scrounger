@@ -73,7 +73,7 @@ func ReportCmd() *cli.Command {
 		Action: func(c *cli.Context) error {
 
 			ctx := context.Background()
-			ghClient := gh.NewClient(ctx)
+			ghClient := gh.NewClientFromEnv(ctx)
 
 			topic := c.Value("topic").(string)
 			repo := c.Value("repo").(string)

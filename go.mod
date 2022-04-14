@@ -9,13 +9,16 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
 	github.com/urfave/cli/v2 v2.4.0
+	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 )
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/dprotaso/go-yit v0.0.0-20191028211022-135eb7262960 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect

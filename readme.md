@@ -26,3 +26,6 @@ go build
 ./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 
+```
+./team-reporter images kustomize --root {some-path} --root {some-other-path } # list all images
+```

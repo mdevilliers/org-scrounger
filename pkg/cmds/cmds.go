@@ -12,6 +12,7 @@ func Commands() []*cli.Command {
 	return []*cli.Command{
 		ReportCmd(),
 		ListCmd(),
+		ImagesCmd(),
 	}
 }
 

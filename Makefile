@@ -8,12 +8,12 @@ build: CMD = ./cmd/team-reporter
 build:
 	go build $(CMD)
 
-.PHONY: test
 # Run test suite
+.PHONY: test
 test:
 	go test -v ./...
 
-# the linting gods must be obeyed
+# The linting gods must be obeyed
 .PHONY: lint
 lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)

@@ -7,25 +7,40 @@ A highly opinionated CLI to aid me in my day-to-day tasks engineer managing a la
 [![ReportCard](https://goreportcard.com/badge/github.com/mdevilliers/org-scrounger)](https://goreportcard.com/report/github.com/mdevilliers/org-scrounger)
 
 
-## run
+## Examples
+
+Get some help.
+
+```
+# get some help
+./team-reporter -h
+```
+
+Run reports outputting either to JSON or format using a template file.
 
 Ensure you have a github token in your env
 
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-cd ./cmd/team-reporter/
-go build
-
 # get some help
 ./team-reporter -h
 
-# run some reports
 ./team-reporter report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
 ./team-reporter report --topic foo --owner some-owner  # outputs json
 ./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 
+List all of the docker images used in a kustomize configuration.
+
 ```
 ./team-reporter images kustomize --root {some-path} --root {some-other-path } # list all images
+```
+
+List all of the repos with some basic information for a team.
+
+```
+export GITHUB_TOKEN=xxxxxxxxxxx
+
+./team-reporter list --topic foo --owner some-owner --omit-archived | jq
 ```

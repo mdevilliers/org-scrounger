@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -24,10 +25,16 @@ func ImagesCmd() *cli.Command {
 						Aliases: []string{"r"},
 						Usage:   "path to root of kustomize config",
 					},
+					&cli.BoolFlag{
+						Name:  "omit-usage-count",
+						Value: false,
+						Usage: "omit usage count",
+					},
 				},
 				Action: func(c *cli.Context) error {
 
 					roots := c.Value("root").(cli.StringSlice)
+					omitUsageCount := c.Value("omit-usage-count").(bool)
 					all := util.NewSet[string]()
 
 					for _, root := range roots.Value() {
@@ -66,9 +73,19 @@ func ImagesCmd() *cli.Command {
 							}
 						}
 					}
+					// sort alphabetially by key
+					keys := make([]string, 0, len(all))
+					for k := range all {
+						keys = append(keys, k)
+					}
+					sort.Strings(keys)
 
-					for k, v := range all {
-						fmt.Println(k, v)
+					for _, key := range keys {
+						if omitUsageCount {
+							fmt.Println(key)
+						} else {
+							fmt.Println(key, all[key])
+						}
 					}
 
 					return nil

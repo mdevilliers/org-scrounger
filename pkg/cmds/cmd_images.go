@@ -25,10 +25,16 @@ func ImagesCmd() *cli.Command {
 						Aliases: []string{"r"},
 						Usage:   "path to root of kustomize config",
 					},
+					&cli.BoolFlag{
+						Name:  "omit-usage-count",
+						Value: false,
+						Usage: "omit usage count",
+					},
 				},
 				Action: func(c *cli.Context) error {
 
 					roots := c.Value("root").(cli.StringSlice)
+					omitUsageCount := c.Value("omit-usage-count").(bool)
 					all := util.NewSet[string]()
 
 					for _, root := range roots.Value() {
@@ -75,7 +81,11 @@ func ImagesCmd() *cli.Command {
 					sort.Strings(keys)
 
 					for _, key := range keys {
-						fmt.Println(key, all[key])
+						if omitUsageCount {
+							fmt.Println(key)
+						} else {
+							fmt.Println(key, all[key])
+						}
 					}
 
 					return nil

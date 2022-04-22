@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -66,9 +67,15 @@ func ImagesCmd() *cli.Command {
 							}
 						}
 					}
+					// sort alphabetially by key
+					keys := make([]string, 0, len(all))
+					for k := range all {
+						keys = append(keys, k)
+					}
+					sort.Strings(keys)
 
-					for k, v := range all {
-						fmt.Println(k, v)
+					for _, key := range keys {
+						fmt.Println(key, all[key])
 					}
 
 					return nil

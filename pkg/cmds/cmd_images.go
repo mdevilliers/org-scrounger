@@ -44,9 +44,8 @@ func ImagesCmd() *cli.Command {
 						if err != nil {
 							return errors.Wrap(err, "error running kustomize")
 						}
-
 						// split out to the individual documents
-						yamls := strings.Split(output, "---")
+						yamls := strings.Split(output, "\n---\n")
 
 						for _, yamlstr := range yamls {
 							// extract all the .image values

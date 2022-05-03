@@ -28,36 +28,40 @@ type Repository struct {
 			} `json:"topic"`
 		} `json:"nodes"`
 	} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
-	PullRequests struct {
-		Nodes []struct {
-			Title     githubv4.String   `json:"title"`
-			State     githubv4.String   `json:"state"`
-			Mergeable githubv4.String   `json:"mergeable"`
-			CreatedAt githubv4.DateTime `json:"created_at"`
-			Url       githubv4.String   `json:"url"`
-			IsDraft   githubv4.Boolean  `json:"is_draft"`
-			Author    struct {
-				Login githubv4.String `json:"login"`
-			} `json:"author"`
-			Commits struct {
-				Nodes []struct {
-					Commit struct {
-						Status struct {
-							State githubv4.String `json:"state"`
-						} `json:"status"`
-					} `json:"commit"`
-				} `json:"nodes"`
-			} `graphql:"commits(last:1)" json:"commits"`
-		} `json:"nodes"`
-	} `graphql:"pullRequests(last:30, states:[OPEN])" json:"pull_requests"`
+	PullRequests        `graphql:"pullRequests(last:30, states:[OPEN])" json:"pull_requests"`
 	VulnerabilityAlerts `graphql:"vulnerabilityAlerts(first:100, states:[OPEN])" json:"vulnerability_alerts"`
 }
 
-type VulnerabilityAlerts struct {
-	Edges Edges `json:"edges"`
+type PullRequests struct {
+	Nodes []PullRequestNode `json:"nodes"`
 }
 
-type Edges []struct {
+type PullRequestNode struct {
+	Title     githubv4.String   `json:"title"`
+	State     githubv4.String   `json:"state"`
+	Mergeable githubv4.String   `json:"mergeable"`
+	CreatedAt githubv4.DateTime `json:"created_at"`
+	Url       githubv4.String   `json:"url"`
+	IsDraft   githubv4.Boolean  `json:"is_draft"`
+	Author    struct {
+		Login githubv4.String `json:"login"`
+	} `json:"author"`
+	Commits struct {
+		Nodes []struct {
+			Commit struct {
+				Status struct {
+					State githubv4.String `json:"state"`
+				} `json:"status"`
+			} `json:"commit"`
+		} `json:"nodes"`
+	} `graphql:"commits(last:1)" json:"commits"`
+}
+
+type VulnerabilityAlerts struct {
+	Edges []VulnerabilityAlertsEdge `json:"edges"`
+}
+
+type VulnerabilityAlertsEdge struct {
 	Node struct {
 		CreatedAt                  githubv4.DateTime `json:"created_at"`
 		Number                     githubv4.Int      `json:"number"`

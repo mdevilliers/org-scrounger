@@ -35,7 +35,7 @@ func PredicateOnSeverity(va gh.VulnerabilityAlerts, severity ...string) gh.Vulne
 	return ret
 }
 
-type BySeverity gh.Edges
+type BySeverity []gh.VulnerabilityAlertsEdge
 
 func (a BySeverity) Len() int { return len(a) }
 func (a BySeverity) Less(i, j int) bool {

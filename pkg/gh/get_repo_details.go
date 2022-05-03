@@ -33,10 +33,10 @@ type Repository struct {
 }
 
 type PullRequests struct {
-	Nodes []PullRequestNode `json:"nodes"`
+	Nodes []PullRequest `json:"nodes"`
 }
 
-type PullRequestNode struct {
+type PullRequest struct {
 	Title     githubv4.String   `json:"title"`
 	State     githubv4.String   `json:"state"`
 	Mergeable githubv4.String   `json:"mergeable"`
@@ -55,6 +55,13 @@ type PullRequestNode struct {
 			} `json:"commit"`
 		} `json:"nodes"`
 	} `graphql:"commits(last:1)" json:"commits"`
+}
+
+func (p PullRequest) IsMergable() bool {
+	return p.Mergeable == "MERGEABLE"
+}
+func (p PullRequest) LastCommitBuilds() bool {
+	return p.Commits.Nodes[0].Commit.Status.State == "SUCCESS"
 }
 
 type VulnerabilityAlerts struct {

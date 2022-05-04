@@ -37,13 +37,16 @@ type PullRequests struct {
 }
 
 type PullRequest struct {
-	Title     githubv4.String   `json:"title"`
-	State     githubv4.String   `json:"state"`
-	Mergeable githubv4.String   `json:"mergeable"`
-	CreatedAt githubv4.DateTime `json:"created_at"`
-	Url       githubv4.String   `json:"url"`
-	IsDraft   githubv4.Boolean  `json:"is_draft"`
-	Author    struct {
+	Title      githubv4.String   `json:"title"`
+	State      githubv4.String   `json:"state"`
+	Mergeable  githubv4.String   `json:"mergeable"`
+	CreatedAt  githubv4.DateTime `json:"created_at"`
+	Url        githubv4.String   `json:"url"`
+	IsDraft    githubv4.Boolean  `json:"is_draft"`
+	Repository struct {
+		Name githubv4.String `json:"name"`
+	} `json:"repository"`
+	Author struct {
 		Login githubv4.String `json:"login"`
 	} `json:"author"`
 	Commits struct {

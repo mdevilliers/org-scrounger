@@ -15,4 +15,3 @@ func(s Set[T]) Add(c T) {
 	}
 }
 
-

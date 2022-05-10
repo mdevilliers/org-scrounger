@@ -11,7 +11,6 @@ import (
 
 	"github.com/Masterminds/sprig"
 	"github.com/alitto/pond"
-	"github.com/hashicorp/go-multierror"
 	"github.com/mdevilliers/org-scrounger/pkg/funcs"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
@@ -122,8 +121,10 @@ func ReportCmd() *cli.Command {
 
 			all := Data{Repositories: map[string]Details{}}
 			allmutex := sync.Mutex{}
-			var result *multierror.Error
+
 			pool := pond.New(5, 0, pond.MinWorkers(3))
+			defer pool.StopAndWait()
+			group, ctx := pool.GroupContext(ctx)
 
 			for _, repo := range repos {
 
@@ -137,13 +138,12 @@ func ReportCmd() *cli.Command {
 					continue
 				}
 
-				pool.Submit(func() {
+				group.Submit(func() error {
 
 					repoDetails, rateLimit, err := ghClient.GetRepoDetails(ctx, owner, reponame)
 					log(rateLimit)
 					if err != nil {
-						result = multierror.Append(result, err)
-						return
+						return err
 					}
 					allmutex.Lock()
 					defer allmutex.Unlock()
@@ -156,21 +156,18 @@ func ReportCmd() *cli.Command {
 						unreleasedCommits, rateLimit, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 						log(rateLimit)
 						if err != nil {
-							result = multierror.Append(result, err)
-							return
+							return err
 						}
 						detail := all.Repositories[reponame]
 						detail.UnreleasedCommits = unreleasedCommits
 						all.Repositories[reponame] = detail
 					}
+					return nil
 				})
 			}
-
-			pool.StopAndWait()
-			if result.ErrorOrNil() != nil {
-				return result
+			if err := group.Wait(); err != nil {
+				return err
 			}
-
 			switch output {
 			case "json":
 				b, err := json.Marshal(all)

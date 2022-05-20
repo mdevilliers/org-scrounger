@@ -14,7 +14,6 @@ func Test_Parse(t *testing.T) {
 # global
 # default owner if not declared in a mapping entry	
 owner = "foo"
-container_repository = ["foo", "docker.io"]
 
 # static repos 
 repo_foo > _ 

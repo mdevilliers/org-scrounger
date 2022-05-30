@@ -14,8 +14,18 @@ import (
 func Test_MappedRepoIsReturned(t *testing.T) {
 
 	reader := strings.NewReader(`
+owner = "org-1"
+
+# ignore doesn't map to a repo
+_ > "please/ignore"
+
+# static is a repo we want to care about
+static > _
+
 foo > "bar"
-needle > ["no", "yes", "no"]
+org-2/foo > "other-org"
+needle > ["no", "yes", "maybe"]
+
 `)
 	rules, err := parser.UnMarshal("foo", reader)
 	require.Nil(t, err)

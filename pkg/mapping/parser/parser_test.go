@@ -30,8 +30,8 @@ repo-3 > ["svc-three-one-service","svc-three-two-service","svc-three-three-servi
 _ > "third-party/something/something"
 `
 	r := strings.NewReader(testFile)
-	o := &MappingFile{}
-	err := Parse("test", r, o)
+	o := &MappingRuleSet{}
+	err := parse("test", r, o)
 	require.Nil(t, err)
 	repr.Println(o, repr.Indent("  "), repr.OmitEmpty(true))
 }

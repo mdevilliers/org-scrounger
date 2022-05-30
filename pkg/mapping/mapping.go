@@ -10,8 +10,7 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 type Mapper struct {
-	expanded *expando
-	client   repoGetter
+	client repoGetter
 }
 
 //counterfeiter:generate . repoGetter
@@ -20,12 +19,14 @@ type repoGetter interface {
 }
 
 func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
-	return &Mapper{expanded: Expand(rules), client: client}, nil
+	m := &Mapper{client: client}
+	err := m.Expand(rules)
+	return m, err
 }
 
 func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.Repository, error) {
 
-	status, org, reponame := m.expanded.RepoFromContainer(container)
+	status, org, reponame := m.Resolve(container)
 	switch status {
 	case Ignore:
 		return false, gh.Repository{}, nil
@@ -38,5 +39,4 @@ func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.Repository,
 		return false, gh.Repository{}, err
 	}
 	return true, repo, nil
-
 }

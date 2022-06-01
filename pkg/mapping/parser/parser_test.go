@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alecthomas/repr"
 	"github.com/stretchr/testify/require"
 )
 
@@ -33,5 +32,6 @@ _ > "third-party/something/something"
 	o := &MappingRuleSet{}
 	err := parse("test", r, o)
 	require.Nil(t, err)
-	repr.Println(o, repr.Indent("  "), repr.OmitEmpty(true))
+	//repr.Println(o, repr.Indent("  "), repr.OmitEmpty(true))
+	require.Len(t, o.Entries, 14) // includes comments
 }

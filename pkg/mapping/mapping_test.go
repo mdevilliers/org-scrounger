@@ -40,14 +40,23 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, _, r := store.GetRepoDetailsArgsForCall(0)
+	_, org, r := store.GetRepoDetailsArgsForCall(0)
 	require.Equal(t, "foo", r)
+	require.Equal(t, "org-1", org)
+
+	found, _, err = mapper.RepositoryFromContainer("other-org")
+	require.Nil(t, err)
+	require.True(t, found)
+
+	_, org, r = store.GetRepoDetailsArgsForCall(1)
+	require.Equal(t, "foo", r)
+	require.Equal(t, "org-2", org)
 
 	found, _, err = mapper.RepositoryFromContainer("yes")
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(1)
+	_, _, r = store.GetRepoDetailsArgsForCall(2)
 	require.Equal(t, "needle", r)
 
 	// lets pretend booyah! exists in github
@@ -55,7 +64,7 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(2)
+	_, _, r = store.GetRepoDetailsArgsForCall(3)
 	require.Equal(t, "booyah!", r)
 
 	// lets pretend booyah! doesn;t exist in github
@@ -65,7 +74,7 @@ needle > ["no", "yes", "maybe"]
 	require.NotNil(t, err)
 	require.False(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(3)
+	_, _, r = store.GetRepoDetailsArgsForCall(4)
 	require.Equal(t, "booyah!", r)
 
 }

@@ -10,7 +10,11 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 type Mapper struct {
-	client repoGetter
+	client       repoGetter
+	containers   map[string]string
+	ignore       map[string]interface{}
+	static       map[string]interface{}
+	defaultOwner string
 }
 
 //counterfeiter:generate . repoGetter
@@ -19,7 +23,12 @@ type repoGetter interface {
 }
 
 func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
-	m := &Mapper{client: client}
+	m := &Mapper{
+		client:     client,
+		containers: map[string]string{},
+		ignore:     map[string]interface{}{},
+		static:     map[string]interface{}{},
+	}
 	err := m.Expand(rules)
 	return m, err
 }
@@ -33,7 +42,7 @@ func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.Repository,
 	case NoMappingFound:
 		reponame = container
 	}
-
+	// TODO : propogate context correctly
 	repo, _, err := m.client.GetRepoDetails(context.Background(), org, reponame)
 	if err != nil {
 		return false, gh.Repository{}, err

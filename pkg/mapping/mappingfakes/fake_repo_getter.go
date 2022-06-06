@@ -9,20 +9,20 @@ import (
 )
 
 type FakeRepoGetter struct {
-	GetRepoDetailsStub        func(context.Context, string, string) (gh.Repository, gh.RateLimit, error)
-	getRepoDetailsMutex       sync.RWMutex
-	getRepoDetailsArgsForCall []struct {
+	GetRepoByNameStub        func(context.Context, string, string) (gh.RepositorySlim, gh.RateLimit, error)
+	getRepoByNameMutex       sync.RWMutex
+	getRepoByNameArgsForCall []struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
 	}
-	getRepoDetailsReturns struct {
-		result1 gh.Repository
+	getRepoByNameReturns struct {
+		result1 gh.RepositorySlim
 		result2 gh.RateLimit
 		result3 error
 	}
-	getRepoDetailsReturnsOnCall map[int]struct {
-		result1 gh.Repository
+	getRepoByNameReturnsOnCall map[int]struct {
+		result1 gh.RepositorySlim
 		result2 gh.RateLimit
 		result3 error
 	}
@@ -30,18 +30,18 @@ type FakeRepoGetter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeRepoGetter) GetRepoDetails(arg1 context.Context, arg2 string, arg3 string) (gh.Repository, gh.RateLimit, error) {
-	fake.getRepoDetailsMutex.Lock()
-	ret, specificReturn := fake.getRepoDetailsReturnsOnCall[len(fake.getRepoDetailsArgsForCall)]
-	fake.getRepoDetailsArgsForCall = append(fake.getRepoDetailsArgsForCall, struct {
+func (fake *FakeRepoGetter) GetRepoByName(arg1 context.Context, arg2 string, arg3 string) (gh.RepositorySlim, gh.RateLimit, error) {
+	fake.getRepoByNameMutex.Lock()
+	ret, specificReturn := fake.getRepoByNameReturnsOnCall[len(fake.getRepoByNameArgsForCall)]
+	fake.getRepoByNameArgsForCall = append(fake.getRepoByNameArgsForCall, struct {
 		arg1 context.Context
 		arg2 string
 		arg3 string
 	}{arg1, arg2, arg3})
-	stub := fake.GetRepoDetailsStub
-	fakeReturns := fake.getRepoDetailsReturns
-	fake.recordInvocation("GetRepoDetails", []interface{}{arg1, arg2, arg3})
-	fake.getRepoDetailsMutex.Unlock()
+	stub := fake.GetRepoByNameStub
+	fakeReturns := fake.getRepoByNameReturns
+	fake.recordInvocation("GetRepoByName", []interface{}{arg1, arg2, arg3})
+	fake.getRepoByNameMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
 	}
@@ -51,50 +51,49 @@ func (fake *FakeRepoGetter) GetRepoDetails(arg1 context.Context, arg2 string, ar
 	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
 }
 
-func (fake *FakeRepoGetter) GetRepoDetailsCallCount() int {
-	fake.getRepoDetailsMutex.RLock()
-	defer fake.getRepoDetailsMutex.RUnlock()
-	return len(fake.getRepoDetailsArgsForCall)
+func (fake *FakeRepoGetter) GetRepoByNameCallCount() int {
+	fake.getRepoByNameMutex.RLock()
+	defer fake.getRepoByNameMutex.RUnlock()
+	return len(fake.getRepoByNameArgsForCall)
 }
 
-func (fake *FakeRepoGetter) GetRepoDetailsCalls(stub func(context.Context, string, string) (gh.Repository, gh.RateLimit, error)) {
-	fake.getRepoDetailsMutex.Lock()
-	defer fake.getRepoDetailsMutex.Unlock()
-	fake.GetRepoDetailsStub = stub
+func (fake *FakeRepoGetter) GetRepoByNameCalls(stub func(context.Context, string, string) (gh.RepositorySlim, gh.RateLimit, error)) {
+	fake.getRepoByNameMutex.Lock()
+	defer fake.getRepoByNameMutex.Unlock()
+	fake.GetRepoByNameStub = stub
 }
 
-func (fake *FakeRepoGetter) GetRepoDetailsArgsForCall(i int) (context.Context, string, string) {
-
-	fake.getRepoDetailsMutex.RLock()
-	defer fake.getRepoDetailsMutex.RUnlock()
-	argsForCall := fake.getRepoDetailsArgsForCall[i]
+func (fake *FakeRepoGetter) GetRepoByNameArgsForCall(i int) (context.Context, string, string) {
+	fake.getRepoByNameMutex.RLock()
+	defer fake.getRepoByNameMutex.RUnlock()
+	argsForCall := fake.getRepoByNameArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeRepoGetter) GetRepoDetailsReturns(result1 gh.Repository, result2 gh.RateLimit, result3 error) {
-	fake.getRepoDetailsMutex.Lock()
-	defer fake.getRepoDetailsMutex.Unlock()
-	fake.GetRepoDetailsStub = nil
-	fake.getRepoDetailsReturns = struct {
-		result1 gh.Repository
+func (fake *FakeRepoGetter) GetRepoByNameReturns(result1 gh.RepositorySlim, result2 gh.RateLimit, result3 error) {
+	fake.getRepoByNameMutex.Lock()
+	defer fake.getRepoByNameMutex.Unlock()
+	fake.GetRepoByNameStub = nil
+	fake.getRepoByNameReturns = struct {
+		result1 gh.RepositorySlim
 		result2 gh.RateLimit
 		result3 error
 	}{result1, result2, result3}
 }
 
-func (fake *FakeRepoGetter) GetRepoDetailsReturnsOnCall(i int, result1 gh.Repository, result2 gh.RateLimit, result3 error) {
-	fake.getRepoDetailsMutex.Lock()
-	defer fake.getRepoDetailsMutex.Unlock()
-	fake.GetRepoDetailsStub = nil
-	if fake.getRepoDetailsReturnsOnCall == nil {
-		fake.getRepoDetailsReturnsOnCall = make(map[int]struct {
-			result1 gh.Repository
+func (fake *FakeRepoGetter) GetRepoByNameReturnsOnCall(i int, result1 gh.RepositorySlim, result2 gh.RateLimit, result3 error) {
+	fake.getRepoByNameMutex.Lock()
+	defer fake.getRepoByNameMutex.Unlock()
+	fake.GetRepoByNameStub = nil
+	if fake.getRepoByNameReturnsOnCall == nil {
+		fake.getRepoByNameReturnsOnCall = make(map[int]struct {
+			result1 gh.RepositorySlim
 			result2 gh.RateLimit
 			result3 error
 		})
 	}
-	fake.getRepoDetailsReturnsOnCall[i] = struct {
-		result1 gh.Repository
+	fake.getRepoByNameReturnsOnCall[i] = struct {
+		result1 gh.RepositorySlim
 		result2 gh.RateLimit
 		result3 error
 	}{result1, result2, result3}
@@ -103,8 +102,8 @@ func (fake *FakeRepoGetter) GetRepoDetailsReturnsOnCall(i int, result1 gh.Reposi
 func (fake *FakeRepoGetter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.getRepoDetailsMutex.RLock()
-	defer fake.getRepoDetailsMutex.RUnlock()
+	fake.getRepoByNameMutex.RLock()
+	defer fake.getRepoByNameMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

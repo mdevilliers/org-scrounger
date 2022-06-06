@@ -39,6 +39,34 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ./team-reporter images kustomize --root {some-path} --root {some-other-path } # list all images
 ```
 
+
+### List all of the docker images used in a kustomize configuration and map to repositories
+
+```
+export GITHUB_TOKEN=xxxxxxxxxxx
+
+./team-reporter images kustomize --root {some-path} --root {some-other-path } --mapping {some-file-path}
+```
+
+An example mapping file 
+
+```
+owner = "org-1"
+
+# a container that doesn't map to a repo 
+_ > "please/ignore"
+
+# static is a repo we can't discover from the image name 
+static > _
+
+# the container 'bar' maps to repo 'foo' at the owner above
+foo > "bar"
+# the container 'other-org' maps to another to github repo org-2/foo
+org-2/foo > "other-org"
+# the container 'no', 'yes' and 'maybe' maps to repo 'needle' at the owner above
+needle > ["no", "yes", "maybe"]
+
+```
 ### List all of the repos with some basic information for a team.
 
 ```

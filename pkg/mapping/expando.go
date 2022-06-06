@@ -21,6 +21,12 @@ func (m *Mapper) Expand(rules *parser.MappingRuleSet) error {
 			if e.Field.Key == "owner" {
 				m.defaultOwner = *(e.Field.Value.String)
 			}
+			if e.Field.Key == "container_repositories" {
+				for _, v := range e.Field.Value.List {
+					key := *(v.String)
+					m.containerRepos[key] = true
+				}
+			}
 		}
 		if e.Mapping != nil {
 			if e.Mapping.Ignore != nil {

@@ -31,7 +31,7 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 
 	store := &mappingfakes.FakeRepoGetter{}
-	store.GetRepoDetailsReturns(gh.Repository{}, gh.RateLimit{}, nil)
+	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, nil)
 
 	mapper, err := New(rules, store)
 	require.Nil(t, err)
@@ -40,7 +40,7 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, org, r := store.GetRepoDetailsArgsForCall(0)
+	_, org, r := store.GetRepoByNameArgsForCall(0)
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-1", org)
 
@@ -48,7 +48,7 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, org, r = store.GetRepoDetailsArgsForCall(1)
+	_, org, r = store.GetRepoByNameArgsForCall(1)
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-2", org)
 
@@ -56,7 +56,7 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(2)
+	_, _, r = store.GetRepoByNameArgsForCall(2)
 	require.Equal(t, "needle", r)
 
 	// lets pretend booyah! exists in github
@@ -64,17 +64,17 @@ needle > ["no", "yes", "maybe"]
 	require.Nil(t, err)
 	require.True(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(3)
+	_, _, r = store.GetRepoByNameArgsForCall(3)
 	require.Equal(t, "booyah!", r)
 
 	// lets pretend booyah! doesn;t exist in github
-	store.GetRepoDetailsReturns(gh.Repository{}, gh.RateLimit{}, errors.New("error finding repo, try again."))
+	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again."))
 
 	found, _, err = mapper.RepositoryFromContainer("booyah!")
 	require.NotNil(t, err)
 	require.False(t, found)
 
-	_, _, r = store.GetRepoDetailsArgsForCall(4)
+	_, _, r = store.GetRepoByNameArgsForCall(4)
 	require.Equal(t, "booyah!", r)
 
 }

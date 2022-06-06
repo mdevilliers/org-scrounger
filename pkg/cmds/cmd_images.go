@@ -1,11 +1,16 @@
 package cmds
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
+	"github.com/mdevilliers/org-scrounger/pkg/gh"
+	"github.com/mdevilliers/org-scrounger/pkg/mapping"
+	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -30,11 +35,16 @@ func ImagesCmd() *cli.Command {
 						Value: false,
 						Usage: "omit usage count",
 					},
+					&cli.StringFlag{
+						Name:  "mapping",
+						Usage: "path to a mapping file",
+					},
 				},
 				Action: func(c *cli.Context) error {
 
 					roots := c.Value("root").(cli.StringSlice)
 					omitUsageCount := c.Value("omit-usage-count").(bool)
+					mappingFile := c.Value("mapping").(string)
 					all := util.NewSet[string]()
 
 					for _, root := range roots.Value() {
@@ -79,11 +89,44 @@ func ImagesCmd() *cli.Command {
 					}
 					sort.Strings(keys)
 
-					for _, key := range keys {
-						if omitUsageCount {
-							fmt.Println(key)
-						} else {
-							fmt.Println(key, all[key])
+					if mappingFile != "" {
+
+						file, err := os.Open(mappingFile)
+						if err != nil {
+							return errors.Wrapf(err, "error opening mapping file : %s", mappingFile)
+						}
+						rules, err := parser.UnMarshal(mappingFile, file)
+						if err != nil {
+							return errors.Wrap(err, "error reading mapping file")
+						}
+						ghClient := gh.NewClientFromEnv(c.Context)
+
+						mapper, err := mapping.New(rules, ghClient)
+						if err != nil {
+							return errors.Wrap(err, "error creating mapper")
+						}
+
+						for _, key := range keys {
+							bits := strings.Split(key, ":")
+							found, repo, err := mapper.RepositoryFromContainer(bits[0])
+							if err != nil {
+								return errors.Wrap(err, "error mapping container to repo")
+							}
+							if found {
+								b, err := json.Marshal(repo)
+								if err != nil {
+									return errors.Wrap(err, "error marshalling to json")
+								}
+								os.Stdout.Write(b)
+							}
+						}
+					} else {
+						for _, key := range keys {
+							if omitUsageCount {
+								fmt.Println(key)
+							} else {
+								fmt.Println(key, all[key])
+							}
 						}
 					}
 

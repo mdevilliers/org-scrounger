@@ -30,10 +30,8 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 		"owner": githubv4.String(owner),
 	}
 
-	rl := RateLimit{}
-
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return RepositorySlim{}, rl, errors.Wrap(err, "error querying github")
+		return RepositorySlim{}, RateLimit{}, errors.Wrap(err, "error querying github")
 	}
 	r := query.Repository
 
@@ -47,5 +45,5 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 		IsArchived: bool(r.IsArchived),
 		Topics:     topics,
 	}
-	return slim, rl, nil
+	return slim, query.RateLimit, nil
 }

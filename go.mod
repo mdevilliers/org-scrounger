@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/alecthomas/participle/v2 v2.0.0-alpha10
+	github.com/alecthomas/participle/v2 v2.0.0-alpha11
 	github.com/alitto/pond v1.8.0
 	github.com/pkg/errors v0.9.1
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2

@@ -33,7 +33,7 @@ type Repository struct {
 }
 
 func (r Repository) MainIsGreen() bool {
-	return string(r.Ref.Target.Commit.Status) == "SUCCESS"
+	return string(r.Ref.Target.Commit.Status.State) == "SUCCESS"
 }
 
 type PullRequests struct {

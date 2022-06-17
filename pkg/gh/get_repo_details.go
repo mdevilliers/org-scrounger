@@ -14,10 +14,10 @@ type Repository struct {
 	Ref        struct {
 		Target struct {
 			Commit struct {
-				Message githubv4.String `json:"message"`
-				Status  struct {
+				Message           githubv4.String `json:"message"`
+				StatusCheckRollup struct {
 					State githubv4.String `json:"state"`
-				} `json:"status"`
+				} `json:"statusCheckRollup"`
 			} `graphql:"... on Commit" json:"commit"`
 		} `json:"target"`
 	} `graphql:"ref(qualifiedName: \"main\" )" json:"ref"`
@@ -32,8 +32,8 @@ type Repository struct {
 	VulnerabilityAlerts `graphql:"vulnerabilityAlerts(first:100, states:[OPEN])" json:"vulnerability_alerts"`
 }
 
-func (r Repository) MainIsGreen() bool {
-	return string(r.Ref.Target.Commit.Status.State) == "SUCCESS"
+func (r Repository) IsMainGreen() bool {
+	return string(r.Ref.Target.Commit.StatusCheckRollup.State) == "SUCCESS"
 }
 
 type PullRequests struct {
@@ -56,9 +56,9 @@ type PullRequest struct {
 	Commits struct {
 		Nodes []struct {
 			Commit struct {
-				Status struct {
+				StatusCheckRollup struct {
 					State githubv4.String `json:"state"`
-				} `json:"status"`
+				} `json:"statusCheckRollup"`
 			} `json:"commit"`
 		} `json:"nodes"`
 	} `graphql:"commits(last:1)" json:"commits"`
@@ -68,7 +68,7 @@ func (p PullRequest) IsMergable() bool {
 	return p.Mergeable == "MERGEABLE"
 }
 func (p PullRequest) LastCommitBuilds() bool {
-	return p.Commits.Nodes[0].Commit.Status.State == "SUCCESS"
+	return p.Commits.Nodes[0].Commit.StatusCheckRollup.State == "SUCCESS"
 }
 
 type VulnerabilityAlerts struct {

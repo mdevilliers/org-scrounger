@@ -18,7 +18,7 @@
   <tr>
     <td> {{ .CreatedAt | github_toDateTime }} </td>
     <td> {{ $key }} </td>
-    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.Status.State "SUCCESS"}}	✅ {{ else if eq .Commit.Status.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}} ✅ {{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
     <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
     <td> {{ .Author.Login}} </td>
     <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>

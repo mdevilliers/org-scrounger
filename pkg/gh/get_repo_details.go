@@ -32,6 +32,10 @@ type Repository struct {
 	VulnerabilityAlerts `graphql:"vulnerabilityAlerts(first:100, states:[OPEN])" json:"vulnerability_alerts"`
 }
 
+func (r Repository) MainIsGreen() bool {
+	return string(r.Ref.Target.Commit.Status) == "SUCCESS"
+}
+
 type PullRequests struct {
 	Nodes []PullRequest `json:"nodes"`
 }

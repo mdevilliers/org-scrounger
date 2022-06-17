@@ -7,7 +7,7 @@
   <body>
     <h1 id="menu">Repos</h1>
     {{ range $key, $value := .Repositories}}
-    <a href="#{{$key}}">{{$key}}</a><br/>
+    <a href="#{{$key}}">{{$key}}</a> {{ if eq $value.Details.Ref.Target.Commit.StatusCheckRollup.State "SUCCESS" }} ✅ {{ else }} 🚫 {{ end }}  <br/>
     {{ end }}
 
 {{range .Repositories}}
@@ -45,7 +45,7 @@ No unreleased commits
 {{ range .Details.PullRequests.Nodes}}
   <tr>
     <td> {{ ago ( .CreatedAt | github_toDateTime ) }} ago </td>
-    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.Status.State "SUCCESS"}}	✅ {{ else if eq .Commit.Status.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}} ✅ {{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
     <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
     <td> {{ .Author.Login}} </td>
     <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>

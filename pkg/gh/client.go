@@ -29,6 +29,7 @@ type (
 		Url        string   `json:"url"`
 		IsArchived bool     `json:"is_archived"`
 		Topics     []string `json:"topics"`
+		Languages  []string `json:"languages"`
 	}
 
 	client struct {

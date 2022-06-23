@@ -20,9 +20,14 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			} `json:"page_info"`
 			Nodes []struct {
 				Repository struct {
-					Name             githubv4.String  `json:"name"`
-					Url              githubv4.String  `json:"url"`
-					IsArchived       githubv4.Boolean `json:"is_archived"`
+					Name       githubv4.String  `json:"name"`
+					Url        githubv4.String  `json:"url"`
+					IsArchived githubv4.Boolean `json:"is_archived"`
+					Languages  struct {
+						Nodes []struct {
+							Name githubv4.String `json:"name" graphql:"name"`
+						} `json:"nodes" graphql:"nodes"`
+					} `json:"languages" graphql:"languages(first:10 )"`
 					RepositoryTopics struct {
 						Nodes []struct {
 							Topic struct {
@@ -58,11 +63,17 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			for _, t := range r.Repository.RepositoryTopics.Nodes {
 				topics = append(topics, string(t.Topic.Name))
 			}
+			languages := []string{}
+			for _, l := range r.Repository.Languages.Nodes {
+				languages = append(languages, string(l.Name))
+			}
+
 			slim := RepositorySlim{
 				Name:       string(r.Repository.Name),
 				Url:        string(r.Repository.Url),
 				IsArchived: bool(r.Repository.IsArchived),
 				Topics:     topics,
+				Languages:  languages,
 			}
 			ret = append(ret, slim)
 		}

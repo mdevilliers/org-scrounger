@@ -19,7 +19,7 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 				Nodes []struct {
 					Name githubv4.String `json:"name" graphql:"name"`
 				} `json:"nodes" graphql:"nodes"`
-			} `json:"languages" graphql:"languages(first:10, orderBy: (direction:DESC, field:SIZE ) )"`
+			} `json:"languages" graphql:"languages(first:10)"`
 			RepositoryTopics struct {
 				Nodes []struct {
 					Topic struct {

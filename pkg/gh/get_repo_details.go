@@ -15,7 +15,7 @@ type Repository struct {
 		Nodes []struct {
 			Name githubv4.String `json:"name" graphql:"name"`
 		} `json:"nodes" graphql:"nodes"`
-	} `json:"languages" graphql:"languages(first:10 )"`
+	} `json:"languages" graphql:"languages(first:10)"`
 	Ref struct {
 		Target struct {
 			Commit struct {

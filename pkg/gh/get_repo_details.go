@@ -16,8 +16,8 @@ type Repository struct {
 			Size githubv4.Int `json:"size"`
 		} `graphql:"edges" json:"edges"`
 		Nodes []struct {
-			Name githubv4.String `json:"name" graphql:"name"`
-		} `json:"nodes" graphql:"nodes"`
+			Name githubv4.String `json:"name"`
+		} `json:"nodes"`
 	} `json:"languages" graphql:"languages(first:10)"`
 	Ref struct {
 		Target struct {

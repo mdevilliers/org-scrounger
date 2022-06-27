@@ -11,7 +11,15 @@ type Repository struct {
 	Name       githubv4.String  `json:"name"`
 	Url        githubv4.String  `json:"url"`
 	IsArchived githubv4.Boolean `json:"is_archived"`
-	Ref        struct {
+	Languages  struct {
+		Edges []struct {
+			Size githubv4.Int `json:"size"`
+		} `graphql:"edges" json:"edges"`
+		Nodes []struct {
+			Name githubv4.String `json:"name"`
+		} `json:"nodes"`
+	} `json:"languages" graphql:"languages(first:10)"`
+	Ref struct {
 		Target struct {
 			Commit struct {
 				Message           githubv4.String `json:"message"`

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -82,12 +81,6 @@ func ImagesCmd() *cli.Command {
 							}
 						}
 					}
-					// sort alphabetially by key
-					keys := make([]string, 0, len(all))
-					for k := range all {
-						keys = append(keys, k)
-					}
-					sort.Strings(keys)
 
 					if mappingFile != "" {
 
@@ -106,7 +99,7 @@ func ImagesCmd() *cli.Command {
 							return errors.Wrap(err, "error creating mapper")
 						}
 
-						for _, key := range keys {
+						for _, key := range all.OrderedKeys() {
 							bits := strings.Split(key, ":")
 							found, repo, err := mapper.RepositoryFromContainer(bits[0])
 							if err != nil {
@@ -121,7 +114,7 @@ func ImagesCmd() *cli.Command {
 							}
 						}
 					} else {
-						for _, key := range keys {
+						for _, key := range all.OrderedKeys() {
 							if omitUsageCount {
 								fmt.Println(key)
 							} else {

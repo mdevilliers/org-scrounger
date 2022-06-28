@@ -29,8 +29,7 @@ repo-3 > ["svc-three-one-service","svc-three-two-service","svc-three-three-servi
 _ > "third-party/something/something"
 `
 	r := strings.NewReader(testFile)
-	o := &MappingRuleSet{}
-	err := parse("test", r, o)
+	o, err := UnMarshal("test", r)
 	require.Nil(t, err)
 	//repr.Println(o, repr.Indent("  "), repr.OmitEmpty(true))
 	require.Len(t, o.Entries, 14) // includes comments

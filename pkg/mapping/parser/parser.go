@@ -35,7 +35,7 @@ type Value struct {
 }
 
 var (
-	parser = participle.MustBuild(&MappingRuleSet{},
+	parser = participle.MustBuild[MappingRuleSet](
 		participle.Lexer(
 			lexer.MustSimple([]lexer.SimpleRule{
 				lexer.SimpleRule{Name: `Ident`, Pattern: `[a-zA-Z\d][a-zA-Z_\-\/\d]*`},
@@ -51,11 +51,5 @@ var (
 )
 
 func UnMarshal(filename string, in io.Reader) (*MappingRuleSet, error) {
-	o := &MappingRuleSet{}
-	err := parse(filename, in, o)
-	return o, err
-}
-
-func parse(filename string, in io.Reader, out interface{}) error {
-	return parser.Parse(filename, in, out)
+	return parser.Parse(filename, in)
 }

@@ -51,7 +51,16 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 An example mapping file 
 
 ```
+# this is a comment
+
+# default github owner
 owner = "org-1"
+
+# know container repositories
+container_repositories = [
+  "foo-container-repo",
+  "bar-container-repo"
+]
 
 # a container that doesn't map to a repo 
 _ > "please/ignore"
@@ -67,6 +76,36 @@ org-2/foo > "other-org"
 needle > ["no", "yes", "maybe"]
 
 ```
+
+Example output
+
+```
+[
+ {
+    "name": "foo-container-repo/bar",
+    "version": "0.3.2",
+    "count": 1,
+    "repo": {
+      "name": "bar",
+      "url": "https://github.com/org-1/foo",
+      "is_archived": false,
+      "topics": [
+        "one",
+        "two"
+      ],
+      "languages": {
+        "Dockerfile": 1572,
+        "Go": 92022,
+        "Makefile": 1609,
+        "Shell": 1332
+      }
+    }
+  }
+]
+
+
+```
+
 ### List all of the repos with some basic information for a team.
 
 ```

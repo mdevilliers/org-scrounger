@@ -21,8 +21,8 @@ func (s Set[T]) Add(c T) {
 }
 
 func (s Set[T]) Keys() []T {
-	r := make([]T, len(s))
-	for k, _ := range s {
+	r := []T{}
+	for k := range s {
 		r = append(r, k)
 	}
 	return r

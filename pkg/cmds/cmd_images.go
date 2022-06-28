@@ -2,9 +2,7 @@ package cmds
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -30,22 +28,24 @@ func ImagesCmd() *cli.Command {
 						Aliases: []string{"r"},
 						Usage:   "path to root of kustomize config",
 					},
-					&cli.BoolFlag{
-						Name:  "omit-usage-count",
-						Value: false,
-						Usage: "omit usage count",
-					},
 					&cli.StringFlag{
 						Name:  "mapping",
 						Usage: "path to a mapping file",
+					},
+					&cli.StringFlag{
+						Name:  "output",
+						Value: "json",
+						Usage: "specify output format [json]. Default is json.",
 					},
 				},
 				Action: func(c *cli.Context) error {
 
 					roots := c.Value("root").(cli.StringSlice)
-					omitUsageCount := c.Value("omit-usage-count").(bool)
 					mappingFile := c.Value("mapping").(string)
+					output := c.Value("output").(string)
 					all := util.NewSet[string]()
+
+					ghClient := gh.NewClientFromEnv(c.Context)
 
 					for _, root := range roots.Value() {
 
@@ -77,17 +77,26 @@ func ImagesCmd() *cli.Command {
 
 							// add to all keeping count
 							for _, element := range elements {
-								image := element.Value
-								all.Add(image)
+								i := strings.TrimSpace(element.Value)
+								if i != "" {
+									all.Add(i)
+								}
 							}
 						}
 					}
-					// sort alphabetially by key
-					keys := make([]string, 0, len(all))
-					for k := range all {
-						keys = append(keys, k)
-					}
-					sort.Strings(keys)
+
+					type (
+						Image struct {
+							Name    string             `json:"name"`
+							Version string             `json:"version"`
+							Count   int                `json:"count"`
+							Repo    *gh.RepositorySlim `json:"repo,omitempty"`
+						}
+					)
+
+					var (
+						mapper *mapping.Mapper
+					)
 
 					if mappingFile != "" {
 
@@ -99,35 +108,50 @@ func ImagesCmd() *cli.Command {
 						if err != nil {
 							return errors.Wrap(err, "error reading mapping file")
 						}
-						ghClient := gh.NewClientFromEnv(c.Context)
 
-						mapper, err := mapping.New(rules, ghClient)
+						mapper, err = mapping.New(rules, ghClient)
 						if err != nil {
 							return errors.Wrap(err, "error creating mapper")
 						}
+					}
 
-						for _, key := range keys {
-							bits := strings.Split(key, ":")
+					images := []Image{}
+
+					for _, key := range all.OrderedKeys() {
+						bits := strings.Split(key, ":")
+
+						imageName := bits[0]
+						version := "unknown"
+						if len(bits) == 2 {
+							version = bits[1]
+						}
+
+						image := Image{
+							Name:    imageName,
+							Version: version,
+							Count:   all[key],
+						}
+
+						if mapper != nil {
 							found, repo, err := mapper.RepositoryFromContainer(bits[0])
 							if err != nil {
 								return errors.Wrap(err, "error mapping container to repo")
 							}
 							if found {
-								b, err := json.Marshal(repo)
-								if err != nil {
-									return errors.Wrap(err, "error marshalling to json")
-								}
-								os.Stdout.Write(b)
+								image.Repo = &repo
 							}
 						}
-					} else {
-						for _, key := range keys {
-							if omitUsageCount {
-								fmt.Println(key)
-							} else {
-								fmt.Println(key, all[key])
-							}
+						images = append(images, image)
+					}
+					switch output {
+					case "json":
+						b, err := json.Marshal(images)
+						if err != nil {
+							return errors.Wrap(err, "error marshalling to json")
 						}
+						os.Stdout.Write(b)
+					default:
+						return errors.New("unknown output - needs to be json")
 					}
 
 					return nil

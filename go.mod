@@ -11,6 +11,7 @@ require (
 	github.com/stretchr/testify v1.7.5
 	github.com/urfave/cli/v2 v2.10.3
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
+	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	gopkg.in/yaml.v3 v3.0.1
 )

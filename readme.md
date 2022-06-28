@@ -86,7 +86,7 @@ Example output
     "version": "0.3.2",
     "count": 1,
     "repo": {
-      "name": "bar",
+      "name": "foo",
       "url": "https://github.com/org-1/foo",
       "is_archived": false,
       "topics": [

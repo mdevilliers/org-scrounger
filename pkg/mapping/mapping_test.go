@@ -68,7 +68,7 @@ needle > ["no", "yes", "maybe"]
 	require.Equal(t, "booyah!", r)
 
 	// lets pretend booyah! doesn;t exist in github
-	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again."))
+	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again"))
 
 	found, _, err = mapper.RepositoryFromContainer("booyah!")
 	require.NotNil(t, err)

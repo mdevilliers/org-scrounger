@@ -10,9 +10,9 @@ import (
 
 func Commands() []*cli.Command {
 	return []*cli.Command{
-		ReportCmd(),
-		ListCmd(),
-		ImagesCmd(),
+		reportCmd(),
+		listCmd(),
+		imagesCmd(),
 	}
 }
 

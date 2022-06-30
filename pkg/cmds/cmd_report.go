@@ -18,7 +18,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ReportCmd() *cli.Command {
+func reportCmd() *cli.Command {
 	return &cli.Command{
 		Name: "report",
 		Flags: []cli.Flag{

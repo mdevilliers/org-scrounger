@@ -6,15 +6,15 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
 )
 
-type Status int
+type status int
 
 const (
-	OK Status = iota
-	Ignore
-	NoMappingFound
+	ok status = iota
+	ignored
+	noMappingFound
 )
 
-func (m *Mapper) Expand(rules *parser.MappingRuleSet) error {
+func (m *Mapper) expand(rules *parser.MappingRuleSet) error {
 
 	for _, e := range rules.Entries {
 		if e.Field != nil {
@@ -53,19 +53,19 @@ func (m *Mapper) Expand(rules *parser.MappingRuleSet) error {
 	}
 	return nil
 }
-func (m *Mapper) Resolve(container string) (Status, string, string) {
+func (m *Mapper) resolve(container string) (status, string, string) {
 
 	_, found := m.ignore[container]
 	if found {
-		return Ignore, m.defaultOwner, container
+		return ignored, m.defaultOwner, container
 	}
 	v, found := m.containers[container]
 	if found {
 		owner, c := split(v, m.defaultOwner)
-		return OK, owner, c
+		return ok, owner, c
 	}
 
-	return NoMappingFound, m.defaultOwner, container
+	return noMappingFound, m.defaultOwner, container
 }
 
 func split(repo, defaultOwner string) (string, string) {

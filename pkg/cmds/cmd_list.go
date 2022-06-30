@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ListCmd() *cli.Command {
+func listCmd() *cli.Command {
 	return &cli.Command{
 		Name: "list",
 		Flags: []cli.Flag{

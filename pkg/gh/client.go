@@ -26,7 +26,7 @@ type (
 	}
 	RepositorySlim struct {
 		Name       string         `json:"name"`
-		Url        string         `json:"url"`
+		URL        string         `json:"url"`
 		IsArchived bool           `json:"is_archived"`
 		Topics     []string       `json:"topics"`
 		Languages  map[string]int `json:"languages"`

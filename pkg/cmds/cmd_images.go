@@ -16,11 +16,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func ImagesCmd() *cli.Command {
+func imagesCmd() *cli.Command {
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
-			&cli.Command{
+			{
 				Name: "kustomize",
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{

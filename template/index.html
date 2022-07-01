@@ -45,8 +45,8 @@ No unreleased commits
 {{ range .Details.PullRequests.Nodes}}
   <tr>
     <td> {{ ago ( .CreatedAt | github_toDateTime ) }} ago </td>
-    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}} ✅ {{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
-    <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}}✅{{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }}🚫{{ else}}❓{{ end }}{{ end }}</td>
+    <td> {{ if eq .Mergeable "MERGEABLE"}}✅{{ else }}🚫{{ end }} </td>
     <td> {{ .Author.Login}} </td>
     <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>
   </tr>
@@ -57,7 +57,7 @@ No unreleased commits
 {{end}}
 
 <h3>Vulnerability Alerts</h3>
-      {{ $url := .Details.Url}}
+      {{ $url := .Details.URL}}
       {{ $p := (predicate_severity .Details.VulnerabilityAlerts "CRITICAL" "HIGH") }}
 {{ if $p.Edges }}
 <table>

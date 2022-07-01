@@ -99,7 +99,7 @@ func reportCmd() *cli.Command {
 			if repo != "" {
 				repos = append(repos, gh.RepositorySlim{
 					Name: repo,
-					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
+					URL:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 				})
 			} else {
 				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, topic)

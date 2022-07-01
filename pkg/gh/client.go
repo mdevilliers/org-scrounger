@@ -17,7 +17,7 @@ type (
 		Message        string `json:"message"`
 		AbbreviatedOid string `json:"abbreviated_oid"`
 		Oid            string `json:"oid"`
-		Url            string `json:"url"`
+		URL            string `json:"url"`
 	}
 	UnreleasedCommits struct {
 		Commits []Commit `json:"commits"`

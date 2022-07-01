@@ -10,11 +10,11 @@ func NewSet[T constraints.Ordered]() Set[T] {
 	return Set[T]{}
 }
 
-// Set tracks items added keeping the total 
+// Set tracks items added keeping the total
 // number of each individual item added.
 type Set[T constraints.Ordered] map[T]int
 
-// Add 
+// Add
 func (s Set[T]) Add(c T) {
 	_, found := s[c]
 	if found {

@@ -74,7 +74,7 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 			Message:        string(commit.Message),
 			Oid:            string(commit.Oid),
 			AbbreviatedOid: string(commit.AbbreviatedOid),
-			Url:            string(commit.URL),
+			URL:            string(commit.URL),
 		})
 	}
 

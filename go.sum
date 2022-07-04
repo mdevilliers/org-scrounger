@@ -40,8 +40,8 @@ github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF0
 github.com/Masterminds/sprig v2.22.0+incompatible h1:z4yfnGrZ7netVz+0EDJ0Wi+5VZCSYp4Z0m2dk6cEM60=
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
 github.com/alecthomas/assert/v2 v2.0.3 h1:WKqJODfOiQG0nEJKFKzDIG3E29CN2/4zR9XGJzKIkbg=
-github.com/alecthomas/participle/v2 v2.0.0-beta.3 h1:9HnyNuDsqOG8sl63Dz+KubqHhU8aWqsrjKdecim8GW0=
-github.com/alecthomas/participle/v2 v2.0.0-beta.3/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
+github.com/alecthomas/participle/v2 v2.0.0-beta.4 h1:ublfGBm+x+p2j7KotHhrUMbKtejT7M0Gv1Mt1u3absw=
+github.com/alecthomas/participle/v2 v2.0.0-beta.4/go.mod h1:RC764t6n4L8D8ITAJv0qdokritYSNR3wV5cVwmIEaMM=
 github.com/alecthomas/repr v0.1.0 h1:ENn2e1+J3k09gyj2shc0dHr/yjaWSHRlrJ4DPMevDqE=
 github.com/alitto/pond v1.8.0 h1:/4wnAU0vOjhsUxOxjtXuNb59oh0J+Jjukf6gtkWpGJk=
 github.com/alitto/pond v1.8.0/go.mod h1:xQn3P/sHTYcU/1BR3i86IGIrilcrGC2LiS+E2+CJWsI=

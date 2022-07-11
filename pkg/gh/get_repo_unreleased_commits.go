@@ -9,7 +9,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, RateLimit, error) {
+func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, RateLimit, error) { // nolint
 	ret := UnreleasedCommits{}
 
 	// get last tag - should be a release really but things are a bit weird in this org

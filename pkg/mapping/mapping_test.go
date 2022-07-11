@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MappedRepoIsReturned(t *testing.T) {
+func Test_MappedRepoIsReturned(t *testing.T) { // nolint: funlen
 
 	reader := strings.NewReader(`
 owner = "org-1"

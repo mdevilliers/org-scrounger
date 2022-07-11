@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"strings"
 
@@ -16,7 +17,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func imagesCmd() *cli.Command {
+func imagesCmd() *cli.Command { // nolint: funlen
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
@@ -34,8 +35,8 @@ func imagesCmd() *cli.Command {
 					},
 					&cli.StringFlag{
 						Name:  "output",
-						Value: "json",
-						Usage: "specify output format [json]. Default is json.",
+						Value: JSONOutputStr,
+						Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
 					},
 				},
 				Action: func(c *cli.Context) error {
@@ -122,7 +123,7 @@ func imagesCmd() *cli.Command {
 
 						imageName := bits[0]
 						version := "unknown"
-						if len(bits) == 2 {
+						if len(bits) == 2 { // nolint: gomnd
 							version = bits[1]
 						}
 
@@ -144,14 +145,14 @@ func imagesCmd() *cli.Command {
 						images = append(images, image)
 					}
 					switch output {
-					case "json":
+					case JSONOutputStr:
 						b, err := json.Marshal(images)
 						if err != nil {
 							return errors.Wrap(err, "error marshalling to json")
 						}
 						os.Stdout.Write(b)
 					default:
-						return errors.New("unknown output - needs to be json")
+						return errors.New("unknown output")
 					}
 
 					return nil

@@ -3,6 +3,7 @@ package cmds
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
@@ -10,7 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ListCmd() *cli.Command {
+func listCmd() *cli.Command { // nolint: funlen
 	return &cli.Command{
 		Name: "list",
 		Flags: []cli.Flag{
@@ -27,8 +28,8 @@ func ListCmd() *cli.Command {
 			},
 			&cli.StringFlag{
 				Name:  "output",
-				Value: "json",
-				Usage: "specify output format [json]. Default is json.",
+				Value: JSONOutputStr,
+				Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
 			},
 			&cli.BoolFlag{
 				Name:  "omit-archived",
@@ -69,13 +70,16 @@ func ListCmd() *cli.Command {
 				all = append(all, repo)
 			}
 			switch output {
-			case "json":
+			case JSONOutputStr:
 				b, err := json.Marshal(all)
 				if err != nil {
 					return errors.Wrap(err, "error marshalling to json")
 				}
 				os.Stdout.Write(b)
+			default:
+				return errors.New("unknown output")
 			}
+
 			return nil
 		},
 	}

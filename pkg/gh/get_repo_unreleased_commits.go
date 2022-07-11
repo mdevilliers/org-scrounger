@@ -9,7 +9,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, RateLimit, error) {
+func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponame string) (UnreleasedCommits, RateLimit, error) { // nolint
 	ret := UnreleasedCommits{}
 
 	// get last tag - should be a release really but things are a bit weird in this org
@@ -22,7 +22,7 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 					Name   githubv4.String `json:"name"`
 					Target struct {
 						Oid       githubv4.String `json:"oid"`
-						CommitUrl githubv4.String `json:"commit_url"`
+						CommitURL githubv4.String `json:"commit_url"`
 					} `json:"target"`
 				} `json:"nodes"`
 			} `graphql:"refs(last:1, refPrefix: \"refs/tags/\", orderBy: {field: TAG_COMMIT_DATE, direction: ASC} )" json:"refs"`
@@ -34,7 +34,7 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 								AbbreviatedOid githubv4.String `json:"abbreviated_oid"`
 								Oid            githubv4.String `json:"oid"`
 								Message        githubv4.String `json:"message"`
-								Url            githubv4.String `json:"url"`
+								URL            githubv4.String `json:"url"`
 							} `json:"nodes"`
 						} `json:"history"`
 					} `graphql:"... on Commit" json:"commit"`
@@ -55,11 +55,11 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 
 	if len(query.Repository.Refs.Nodes) == 1 {
 		latestTagOid = string(query.Repository.Refs.Nodes[0].Target.Oid)
-		commitUrl := string(query.Repository.Refs.Nodes[0].Target.CommitUrl)
+		commitURL := string(query.Repository.Refs.Nodes[0].Target.CommitURL)
 		// if a tagged commit has two parents, trusting the URL commitUrl
 		// as the Oid is better. Git is complicated...
-		if !strings.Contains(commitUrl, latestTagOid) {
-			bits := strings.Split(commitUrl, "/")
+		if !strings.Contains(commitURL, latestTagOid) {
+			bits := strings.Split(commitURL, "/")
 			latestTagOid = bits[len(bits)-1]
 		}
 		ret.LastTag = Tag{Oid: latestTagOid, Tag: string(query.Repository.Refs.Nodes[0].Name)}
@@ -74,13 +74,15 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 			Message:        string(commit.Message),
 			Oid:            string(commit.Oid),
 			AbbreviatedOid: string(commit.AbbreviatedOid),
-			Url:            string(commit.Url),
+			URL:            string(commit.URL),
 		})
 	}
 
 	if len(ret.Commits) == len(query.Repository.Ref.Target.Commit.History.Nodes) {
-		ret.Summary = fmt.Sprintf("%d commits since the last tag. Are there any tags for the repo? Or mabe the last tagged commit isn't listed in the commits. Last tag: %s (%s) ", len(ret.Commits), ret.LastTag.Tag, ret.LastTag.Oid)
-
+		ret.Summary = fmt.Sprintf(`%d commits since the last tag.
+Are there any tags for the repo?
+Or mabe the last tagged commit isn't listed in the commits. Last tag: %s (%s)`,
+			len(ret.Commits), ret.LastTag.Tag, ret.LastTag.Oid)
 	}
 	return ret, query.RateLimit, nil
 }

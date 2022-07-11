@@ -1,14 +1,15 @@
 package funcs
 
 import (
-	"sort"
 	"text/template"
 	"time"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/shurcooL/githubv4"
+	"golang.org/x/exp/slices"
 )
 
+// FuncMap returns a map of registered templating helpers.
 func FuncMap() map[string]interface{} {
 	return template.FuncMap{
 
@@ -19,7 +20,9 @@ func FuncMap() map[string]interface{} {
 	}
 }
 
+// PredicateOnSeverity filters on a Severity
 func PredicateOnSeverity(va gh.VulnerabilityAlerts, severity ...string) gh.VulnerabilityAlerts {
+
 	ret := gh.VulnerabilityAlerts{}
 	for i := range va.Edges {
 		s := va.Edges[i].Node.SecurityVulnerability.Severity
@@ -30,15 +33,8 @@ func PredicateOnSeverity(va gh.VulnerabilityAlerts, severity ...string) gh.Vulne
 			}
 		}
 	}
-
-	sort.Sort(BySeverity(ret.Edges))
+	slices.SortFunc(ret.Edges, func(a, b gh.VulnerabilityAlertsEdge) bool {
+		return a.Node.SecurityVulnerability.Severity < b.Node.SecurityVulnerability.Severity
+	})
 	return ret
 }
-
-type BySeverity []gh.VulnerabilityAlertsEdge
-
-func (a BySeverity) Len() int { return len(a) }
-func (a BySeverity) Less(i, j int) bool {
-	return a[i].Node.SecurityVulnerability.Severity < a[j].Node.SecurityVulnerability.Severity
-}
-func (a BySeverity) Swap(i, j int) { a[i], a[j] = a[j], a[i] }

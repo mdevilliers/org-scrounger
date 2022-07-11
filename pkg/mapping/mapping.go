@@ -10,6 +10,7 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
+// Mapper gives high-level access to a parser.MappingRuleSet
 type Mapper struct {
 	client         repoGetter
 	containers     map[string]string
@@ -24,6 +25,7 @@ type repoGetter interface {
 	GetRepoByName(ctx context.Context, owner, reponame string) (gh.RepositorySlim, gh.RateLimit, error)
 }
 
+// New returns a successfully MappingRuleSet or an error
 func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
 	m := &Mapper{
 		client:         client,
@@ -32,10 +34,11 @@ func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
 		static:         map[string]interface{}{},
 		containerRepos: map[string]interface{}{},
 	}
-	err := m.Expand(rules)
+	err := m.expand(rules)
 	return m, err
 }
 
+// RepositoryFromContainer returns whether the repository was found with some metadata or an error
 func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.RepositorySlim, error) {
 	clean := container
 	for k := range m.containerRepos {
@@ -43,14 +46,14 @@ func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.RepositoryS
 			clean = strings.Replace(container, k, "", 1)
 		}
 	}
-	status, org, reponame := m.Resolve(clean)
+	status, org, reponame := m.resolve(clean)
 	switch status {
-	case Ignore:
+	case ignored:
 		return false, gh.RepositorySlim{}, nil
-	case NoMappingFound:
+	case noMappingFound:
 		reponame = clean
 	}
-	// TODO : propogate context correctly
+	// TODO : propagate context correctly
 	repo, _, err := m.client.GetRepoByName(context.Background(), org, reponame)
 	if err != nil {
 		return false, gh.RepositorySlim{}, err

@@ -2,6 +2,8 @@ package gh
 
 import "github.com/shurcooL/githubv4"
 
+// RateLimit contains information from github as to our
+// existing rate limit quota for the token
 type RateLimit struct {
 	Limit     githubv4.Int      `json:"limit"`
 	Cost      githubv4.Int      `json:"cost"`

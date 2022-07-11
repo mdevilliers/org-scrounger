@@ -13,7 +13,7 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 		RateLimit  RateLimit `json:"rate_limit"`
 		Repository struct {
 			Name       githubv4.String  `json:"name"`
-			Url        githubv4.String  `json:"url"`
+			URL        githubv4.String  `json:"url"`
 			IsArchived githubv4.Boolean `json:"is_archived"`
 			Languages  struct {
 				Edges []struct {
@@ -54,7 +54,7 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 
 	slim := RepositorySlim{
 		Name:       string(r.Name),
-		Url:        string(r.Url),
+		URL:        string(r.URL),
 		IsArchived: bool(r.IsArchived),
 		Topics:     topics,
 		Languages:  languages,

@@ -8,7 +8,7 @@ import (
 	"github.com/shurcooL/githubv4"
 )
 
-func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]RepositorySlim, RateLimit, error) {
+func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]RepositorySlim, RateLimit, error) { // nolint
 
 	var query struct {
 		RateLimit RateLimit `json:"rate_limit"`
@@ -21,7 +21,7 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 			Nodes []struct {
 				Repository struct {
 					Name       githubv4.String  `json:"name"`
-					Url        githubv4.String  `json:"url"`
+					URL        githubv4.String  `json:"url"`
 					IsArchived githubv4.Boolean `json:"is_archived"`
 					Languages  struct {
 						Edges []struct {
@@ -73,7 +73,7 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 
 			slim := RepositorySlim{
 				Name:       string(r.Repository.Name),
-				Url:        string(r.Repository.Url),
+				URL:        string(r.Repository.URL),
 				IsArchived: bool(r.Repository.IsArchived),
 				Topics:     topics,
 				Languages:  languages,

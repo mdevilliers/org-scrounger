@@ -7,11 +7,11 @@
   <body>
     <h1 id="menu">Repos</h1>
     {{ range $key, $value := .Repositories}}
-    <a href="#{{$key}}">{{$key}}</a> {{ if eq $value.Details.Ref.Target.Commit.StatusCheckRollup.State "SUCCESS" }} ✅ {{ else }} 🚫 {{ end }}  <br/>
+    <a href="#{{$key}}">{{$key}}</a> {{ if eq $value.Details.Ref.Target.Commit.StatusCheckRollup.State "SUCCESS" }}✅{{ else }}🚫{{ end }}  <br/>
     {{ end }}
 
 {{range .Repositories}}
-<div id="{{.Details.Name}}"><h2><a href="{{.Details.Url}}">{{.Details.Name}}</a></h2> <a href="#menu">back</a></div>
+<div id="{{.Details.Name}}"><h2><a href="{{.Details.URL}}">{{.Details.Name}}</a></h2> <a href="#menu">back</a></div>
 <h3>Unreleased Commits</h3>
 {{ if .UnreleasedCommits.Commits}}
 {{ if .UnreleasedCommits.Summary}}<div> {{.UnreleasedCommits.Summary}} </div> {{end}}
@@ -45,10 +45,10 @@ No unreleased commits
 {{ range .Details.PullRequests.Nodes}}
   <tr>
     <td> {{ ago ( .CreatedAt | github_toDateTime ) }} ago </td>
-    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}} ✅ {{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }} 🚫  {{ else}} ❓ {{ end }} {{ end }}</td>
-    <td> {{ if eq .Mergeable "MERGEABLE"}}	✅ {{ else }} 🚫 {{ end }} </td>
+    <td> {{ range .Commits.Nodes}} {{ if eq .Commit.StatusCheckRollup.State "SUCCESS"}}✅{{ else if eq .Commit.StatusCheckRollup.State "FAILURE" }}🚫{{ else}}❓{{ end }}{{ end }}</td>
+    <td> {{ if eq .Mergeable "MERGEABLE"}}✅{{ else }}🚫{{ end }} </td>
     <td> {{ .Author.Login}} </td>
-    <td> <a href="{{.Url}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>
+    <td> <a href="{{.URL}}">{{.Title}}</a> {{ if .IsDraft}} (DRAFT) {{ end}} </td>
   </tr>
 {{ end }}
 </table>
@@ -57,7 +57,7 @@ No unreleased commits
 {{end}}
 
 <h3>Vulnerability Alerts</h3>
-      {{ $url := .Details.Url}}
+      {{ $url := .Details.URL}}
       {{ $p := (predicate_severity .Details.VulnerabilityAlerts "CRITICAL" "HIGH") }}
 {{ if $p.Edges }}
 <table>

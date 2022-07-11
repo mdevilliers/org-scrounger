@@ -18,7 +18,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func ReportCmd() *cli.Command {
+func reportCmd() *cli.Command { // nolint: funlen
 	return &cli.Command{
 		Name: "report",
 		Flags: []cli.Flag{
@@ -40,8 +40,8 @@ func ReportCmd() *cli.Command {
 			},
 			&cli.StringFlag{
 				Name:  "output",
-				Value: "json",
-				Usage: "specify output format [template, json]. Default is json.",
+				Value: JSONOutputStr,
+				Usage: fmt.Sprintf("specify output format [template, %s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
 			},
 			&cli.BoolFlag{
 				Name:  "omit-archived",
@@ -99,7 +99,7 @@ func ReportCmd() *cli.Command {
 			if repo != "" {
 				repos = append(repos, gh.RepositorySlim{
 					Name: repo,
-					Url:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
+					URL:  fmt.Sprintf("https://github.com/%s/%s", owner, repo),
 				})
 			} else {
 				repos, rateLimit, err = ghClient.GetReposWithTopic(ctx, owner, topic)
@@ -122,7 +122,7 @@ func ReportCmd() *cli.Command {
 			all := Data{Repositories: map[string]Details{}}
 			allmutex := sync.Mutex{}
 
-			pool := pond.New(5, 0, pond.MinWorkers(3))
+			pool := pond.New(5, 0, pond.MinWorkers(3)) // nolint: gomnd
 			defer pool.StopAndWait()
 			group, ctx := pool.GroupContext(ctx)
 
@@ -169,7 +169,7 @@ func ReportCmd() *cli.Command {
 				return err
 			}
 			switch output {
-			case "json":
+			case JSONOutputStr:
 				b, err := json.Marshal(all)
 				if err != nil {
 					return errors.Wrap(err, "error marshalling to json")

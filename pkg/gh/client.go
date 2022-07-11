@@ -17,7 +17,7 @@ type (
 		Message        string `json:"message"`
 		AbbreviatedOid string `json:"abbreviated_oid"`
 		Oid            string `json:"oid"`
-		Url            string `json:"url"`
+		URL            string `json:"url"`
 	}
 	UnreleasedCommits struct {
 		Commits []Commit `json:"commits"`
@@ -26,7 +26,7 @@ type (
 	}
 	RepositorySlim struct {
 		Name       string         `json:"name"`
-		Url        string         `json:"url"`
+		URL        string         `json:"url"`
 		IsArchived bool           `json:"is_archived"`
 		Topics     []string       `json:"topics"`
 		Languages  map[string]int `json:"languages"`
@@ -43,7 +43,7 @@ func NewClientFromEnv(ctx context.Context) *client {
 	return NewClientFromGithubPAT(ctx, token)
 }
 
-//NewClientFromGithubPAT returns a configured client using the supplied Github PAT
+// NewClientFromGithubPAT returns a configured client using the supplied Github PAT
 func NewClientFromGithubPAT(ctx context.Context, token string) *client {
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},

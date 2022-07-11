@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MappedRepoIsReturned(t *testing.T) {
+func Test_MappedRepoIsReturned(t *testing.T) { // nolint: funlen
 
 	reader := strings.NewReader(`
 owner = "org-1"
@@ -68,7 +68,7 @@ needle > ["no", "yes", "maybe"]
 	require.Equal(t, "booyah!", r)
 
 	// lets pretend booyah! doesn;t exist in github
-	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again."))
+	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again"))
 
 	found, _, err = mapper.RepositoryFromContainer("booyah!")
 	require.NotNil(t, err)

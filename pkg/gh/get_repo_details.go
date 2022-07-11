@@ -9,7 +9,7 @@ import (
 
 type Repository struct {
 	Name       githubv4.String  `json:"name"`
-	Url        githubv4.String  `json:"url"`
+	URL        githubv4.String  `json:"url"`
 	IsArchived githubv4.Boolean `json:"is_archived"`
 	Languages  struct {
 		Edges []struct {
@@ -53,7 +53,7 @@ type PullRequest struct {
 	State      githubv4.String   `json:"state"`
 	Mergeable  githubv4.String   `json:"mergeable"`
 	CreatedAt  githubv4.DateTime `json:"created_at"`
-	Url        githubv4.String   `json:"url"`
+	URL        githubv4.String   `json:"url"`
 	IsDraft    githubv4.Boolean  `json:"is_draft"`
 	Repository struct {
 		Name githubv4.String `json:"name"`
@@ -119,7 +119,7 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 	}
 
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return Repository{}, query.RateLimit, errors.Wrapf(err, "error querying github for repo details of %s/%s", owner, reponame)
+		return Repository{}, query.RateLimit, errors.Wrapf(err, "error querying repo details of %s/%s", owner, reponame)
 	}
 	return query.Repository, query.RateLimit, nil
 }

@@ -119,7 +119,7 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 	}
 
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return Repository{}, query.RateLimit, errors.Wrapf(err, "error querying github for repo details of %s/%s", owner, reponame)
+		return Repository{}, query.RateLimit, errors.Wrapf(err, "error querying repo details of %s/%s", owner, reponame)
 	}
 	return query.Repository, query.RateLimit, nil
 }

@@ -18,7 +18,7 @@ type Set[T constraints.Ordered] map[T]int
 func (s Set[T]) Add(c T) {
 	_, found := s[c]
 	if found {
-		s[c] = s[c] + 1
+		s[c]++
 	} else {
 		s[c] = 1
 	}

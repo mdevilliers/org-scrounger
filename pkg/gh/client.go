@@ -43,7 +43,7 @@ func NewClientFromEnv(ctx context.Context) *client {
 	return NewClientFromGithubPAT(ctx, token)
 }
 
-//NewClientFromGithubPAT returns a configured client using the supplied Github PAT
+// NewClientFromGithubPAT returns a configured client using the supplied Github PAT
 func NewClientFromGithubPAT(ctx context.Context, token string) *client {
 	src := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},

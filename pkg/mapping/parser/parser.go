@@ -44,12 +44,12 @@ var (
 	parser = participle.MustBuild[MappingRuleSet](
 		participle.Lexer(
 			lexer.MustSimple([]lexer.SimpleRule{
-				lexer.SimpleRule{Name: `Ident`, Pattern: `[a-zA-Z\d][a-zA-Z_\-\/\d]*`},
-				lexer.SimpleRule{Name: "String", Pattern: `"[^"]*"`},
-				lexer.SimpleRule{Name: "Wildcard", Pattern: `[_]`},
-				lexer.SimpleRule{Name: "Punct", Pattern: `\[|]|[-!()+/*=,>]`},
-				lexer.SimpleRule{Name: "Comment", Pattern: `#[^\n]+`},
-				lexer.SimpleRule{Name: "whitespace", Pattern: `\s+`},
+				{Name: `Ident`, Pattern: `[a-zA-Z\d][a-zA-Z_\-\/\d]*`},
+				{Name: "String", Pattern: `"[^"]*"`},
+				{Name: "Wildcard", Pattern: `[_]`},
+				{Name: "Punct", Pattern: `\[|]|[-!()+/*=,>]`},
+				{Name: "Comment", Pattern: `#[^\n]+`},
+				{Name: "whitespace", Pattern: `\s+`},
 			}),
 		),
 		participle.Unquote("String"),

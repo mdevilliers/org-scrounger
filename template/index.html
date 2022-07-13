@@ -23,7 +23,7 @@
   </tr> 
   {{range .UnreleasedCommits.Commits}}
   <tr>
-    <td><a href="{{.Url}}">{{ .AbbreviatedOid}}</a></td> 
+    <td><a href="{{.URL}}">{{ .AbbreviatedOid}}</a></td>
     <td>{{ abbrev 250 .Message }} </td>
   </tr>
   {{ end }}

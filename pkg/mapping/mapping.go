@@ -2,10 +2,12 @@ package mapping
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
+	"github.com/pkg/errors"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -29,7 +31,24 @@ type repoGetter interface {
 	GetRepoByName(ctx context.Context, owner, reponame string) (gh.RepositorySlim, gh.RateLimit, error)
 }
 
-// New returns a successfully MappingRuleSet or an error
+// LoadFromFile returns an initilised Mapping instance or an error
+func LoadFromFile(path string, client repoGetter) (*Mapper, error) {
+
+	if path == "" {
+		return nil, errors.New("path to mapping file is empty")
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error opening mapping file : %s", path)
+	}
+	rules, err := parser.UnMarshal(path, file)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading mapping file")
+	}
+	return New(rules, client)
+}
+
+// New returns a successfully initilised Mapping instance or an error
 func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
 	m := &Mapper{
 		client:         client,

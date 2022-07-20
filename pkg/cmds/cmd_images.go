@@ -6,18 +6,23 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
-	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
-	"github.com/mdevilliers/org-scrounger/pkg/util"
+	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
-	"gopkg.in/yaml.v3"
 )
 
-func imagesCmd() *cli.Command { // nolint: funlen
+type (
+	Image struct {
+		Name    string             `json:"name"`
+		Version string             `json:"version"`
+		Count   int                `json:"count"`
+		Repo    *gh.RepositorySlim `json:"repo,omitempty"`
+	}
+)
+
+func imagesCmd() *cli.Command { // nolint:funlen
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
@@ -44,73 +49,22 @@ func imagesCmd() *cli.Command { // nolint: funlen
 					roots := c.Value("root").(cli.StringSlice)
 					mappingFile := c.Value("mapping").(string)
 					output := c.Value("output").(string)
-					all := util.NewSet[string]()
 
 					ghClient := gh.NewClientFromEnv(c.Context)
 
-					for _, root := range roots.Value() {
+					kustomize := images.NewKustomize(roots.Value()...)
+					all, err := kustomize.Images()
 
-						// run kustomize in root - get back big ball of yaml
-						output, err := exec.GetCommandOutput(root, "kustomize", "build")
-						if err != nil {
-							return errors.Wrap(err, "error running kustomize")
-						}
-						// split out to the individual documents
-						yamls := strings.Split(output, "\n---\n")
-
-						for _, yamlstr := range yamls {
-							// extract all the .image values
-							var n yaml.Node
-
-							if err := yaml.Unmarshal([]byte(yamlstr), &n); err != nil {
-								return errors.Wrap(err, "error unmarshalling kustomize output")
-							}
-
-							path, err := yamlpath.NewPath("$..spec.containers[*].image")
-							if err != nil {
-								return errors.Wrap(err, "error creating yaml path")
-							}
-
-							elements, err := path.Find(&n)
-							if err != nil {
-								return errors.Wrap(err, "error finding image nodes")
-							}
-
-							// add to all keeping count
-							for _, element := range elements {
-								i := strings.TrimSpace(element.Value)
-								if i != "" {
-									all.Add(i)
-								}
-							}
-						}
+					if err != nil {
+						return err // already wrapped
 					}
-
-					type (
-						Image struct {
-							Name    string             `json:"name"`
-							Version string             `json:"version"`
-							Count   int                `json:"count"`
-							Repo    *gh.RepositorySlim `json:"repo,omitempty"`
-						}
-					)
 
 					var (
 						mapper *mapping.Mapper
 					)
 
 					if mappingFile != "" {
-
-						file, err := os.Open(mappingFile)
-						if err != nil {
-							return errors.Wrapf(err, "error opening mapping file : %s", mappingFile)
-						}
-						rules, err := parser.UnMarshal(mappingFile, file)
-						if err != nil {
-							return errors.Wrap(err, "error reading mapping file")
-						}
-
-						mapper, err = mapping.New(rules, ghClient)
+						mapper, err = mapping.LoadFromFile(mappingFile, ghClient)
 						if err != nil {
 							return errors.Wrap(err, "error creating mapper")
 						}
@@ -144,6 +98,7 @@ func imagesCmd() *cli.Command { // nolint: funlen
 						}
 						images = append(images, image)
 					}
+
 					switch output {
 					case JSONOutputStr:
 						b, err := json.Marshal(images)

@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
@@ -53,19 +54,28 @@ func (m *Mapper) expand(rules *parser.MappingRuleSet) error {
 	}
 	return nil
 }
-func (m *Mapper) resolve(container string) (status, string, string) {
+func (m *Mapper) resolve(namespace, name string) (status, string, string) {
 
-	_, found := m.ignore[container]
-	if found {
-		return ignored, m.defaultOwner, container
+	needle := name
+	if namespace != "" {
+		needle = fmt.Sprintf("%s:%s", namespace, name)
 	}
-	v, found := m.containers[container]
+
+	_, found := m.ignore[needle]
+	if found {
+		return ignored, m.defaultOwner, name
+	}
+	v, found := m.containers[needle]
 	if found {
 		owner, c := split(v, m.defaultOwner)
 		return ok, owner, c
 	}
 
-	return noMappingFound, m.defaultOwner, container
+	// try resolving with no namespace
+	if namespace != "" {
+		return m.resolve("", name)
+	}
+	return noMappingFound, m.defaultOwner, name
 }
 
 func split(repo, defaultOwner string) (string, string) {

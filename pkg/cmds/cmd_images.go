@@ -134,9 +134,9 @@ func imagesCmd() *cli.Command { // nolint: funlen
 						}
 
 						if mapper != nil {
-							found, repo, err := mapper.RepositoryFromContainer(bits[0])
+							found, repo, err := mapper.RepositoryFromImage(bits[0])
 							if err != nil {
-								return errors.Wrap(err, "error mapping container to repo")
+								return errors.Wrapf(err, "error mapping image ( %s) to repo", bits[0])
 							}
 							if found {
 								image.Repo = &repo

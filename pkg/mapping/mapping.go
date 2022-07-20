@@ -10,6 +10,10 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
+const (
+	imageNamespace = "image"
+)
+
 // Mapper gives high-level access to a parser.MappingRuleSet
 type Mapper struct {
 	client         repoGetter
@@ -38,15 +42,16 @@ func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
 	return m, err
 }
 
-// RepositoryFromContainer returns whether the repository was found with some metadata or an error
-func (m *Mapper) RepositoryFromContainer(container string) (bool, gh.RepositorySlim, error) {
+// RepositoryFromImage returns whether the repository was found with some metadata or an error
+func (m *Mapper) RepositoryFromImage(container string) (bool, gh.RepositorySlim, error) {
+
 	clean := container
 	for k := range m.containerRepos {
 		if strings.HasPrefix(container, k) {
 			clean = strings.Replace(container, k, "", 1)
 		}
 	}
-	status, org, reponame := m.resolve(clean)
+	status, org, reponame := m.resolve(imageNamespace, clean)
 	switch status {
 	case ignored:
 		return false, gh.RepositorySlim{}, nil

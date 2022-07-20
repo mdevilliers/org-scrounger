@@ -39,6 +39,11 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ./team-reporter images kustomize --root {some-path} --root {some-other-path } # list all images
 ```
 
+### List all services in a Jaegar trace 
+
+```
+./team-reporter images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e
+```
 
 ### List all of the docker images used in a kustomize configuration and map to repositories
 
@@ -108,6 +113,14 @@ Example output
   }
 ]
 
+```
+
+### List all of the services touched by a Jaegar trace configuration and map to repositories
+
+```
+export GITHUB_TOKEN=xxxxxxxxxxx
+
+./team-reporter images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e --mapping mappings.conf
 
 ```
 

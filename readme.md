@@ -68,11 +68,16 @@ _ > "please/ignore"
 # static is a repo we can't discover from the image name 
 static > _
 
-# the container 'bar' maps to repo 'foo' at the owner above
+# the image 'bar' maps to repo 'foo' at the owner above
 foo > "bar"
-# the container 'other-org' maps to another to github repo org-2/foo
+
+# you can namespace the image using the prefix "image:"
+# the image 'bar2' maps to repo 'foo2' at the owner above
+foo2 > "image:bar2"
+
+# the image 'other-org' maps to another to github repo org-2/foo
 org-2/foo > "other-org"
-# the container 'no', 'yes' and 'maybe' maps to repo 'needle' at the owner above
+# the image 'no', 'yes' and 'maybe' maps to repo 'needle' at the owner above
 needle > ["no", "yes", "maybe"]
 
 ```

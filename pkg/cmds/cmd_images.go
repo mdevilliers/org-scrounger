@@ -27,7 +27,7 @@ type imageProvider interface {
 	Images() (util.Set[string], error)
 }
 
-func imagesCmd() *cli.Command {
+func imagesCmd() *cli.Command { //nolint:funlen
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
@@ -63,13 +63,28 @@ func imagesCmd() *cli.Command {
 						Usage: "path to a mapping file",
 					},
 					&cli.StringFlag{
+						Name:  "jaegar-url",
+						Usage: "Jaegar URL",
+						Value: "http://0.0.0.0:16686",
+					},
+					&cli.StringFlag{
+						Name:     "trace-id",
+						Usage:    "trace ID",
+						Required: true,
+					},
+
+					&cli.StringFlag{
 						Name:  "output",
 						Value: JSONOutputStr,
 						Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
 					},
 				},
 				Action: func(c *cli.Context) error {
-					jaegar := images.NewJaegar("one", "two")
+
+					jaegarURL := c.Value("jaegar-url").(string)
+					traceID := c.Value("trace-id").(string)
+
+					jaegar := images.NewJaegar(jaegarURL, traceID)
 					return getImages(c, jaegar)
 				},
 			},

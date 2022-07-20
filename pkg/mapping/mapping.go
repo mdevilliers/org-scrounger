@@ -61,13 +61,17 @@ func New(rules *parser.MappingRuleSet, client repoGetter) (*Mapper, error) {
 	return m, err
 }
 
-// RepositoryFromImage returns whether the repository was found with some metadata or an error
-func (m *Mapper) RepositoryFromImage(container string) (bool, gh.RepositorySlim, error) {
+func (m *Mapper) SonarcloudFromImage(image string) (bool, error) {
+	return true, nil
+}
 
-	clean := container
+// RepositoryFromImage returns whether the repository was found with some metadata or an error
+func (m *Mapper) RepositoryFromImage(image string) (bool, gh.RepositorySlim, error) {
+
+	clean := image
 	for k := range m.containerRepos {
-		if strings.HasPrefix(container, k) {
-			clean = strings.Replace(container, k, "", 1)
+		if strings.HasPrefix(image, k) {
+			clean = strings.Replace(image, k, "", 1)
 		}
 	}
 	status, org, reponame := m.resolve(imageNamespace, clean)

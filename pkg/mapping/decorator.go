@@ -46,8 +46,7 @@ func (m *Mapper) MapSonarcloudMeta(ctx context.Context, client measureGetter, im
 	clean := m.cleanImageName(image.Name)
 
 	status, sonarcloudKey := m.resolve(sonarcloudNamespace, clean)
-	switch status {
-	case noMappingFound:
+	if status == noMappingFound {
 		return false, nil
 	}
 

@@ -1,13 +1,14 @@
 package mapping
 
 import (
-	"errors"
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/mappingfakes"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,13 +31,16 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	rules, err := parser.UnMarshal("foo", reader)
 	require.Nil(t, err)
 
+	ctx := context.Background()
+	image := &Image{Name: "bar"}
+
 	store := &mappingfakes.FakeRepoGetter{}
 	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, nil)
 
-	mapper, err := New(rules, store)
+	mapper, err := New(rules)
 	require.Nil(t, err)
 
-	found, _, err := mapper.RepositoryFromImage("bar")
+	found, err := mapper.MapGitHubMeta(ctx, store, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -44,7 +48,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-1", org)
 
-	found, _, err = mapper.RepositoryFromImage("other-org")
+	image = &Image{Name: "other-org"}
+	found, err = mapper.MapGitHubMeta(ctx, store, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -52,7 +57,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-2", org)
 
-	found, _, err = mapper.RepositoryFromImage("yes")
+	image = &Image{Name: "yes"}
+	found, err = mapper.MapGitHubMeta(ctx, store, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -60,7 +66,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "needle", r)
 
 	// lets pretend booyah! exists in github
-	found, _, err = mapper.RepositoryFromImage("booyah!")
+	image = &Image{Name: "booyah!"}
+	found, err = mapper.MapGitHubMeta(ctx, store, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -69,12 +76,10 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 
 	// lets pretend booyah! doesn;t exist in github
 	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again"))
-
-	found, _, err = mapper.RepositoryFromImage("booyah!")
+	found, err = mapper.MapGitHubMeta(ctx, store, image)
 	require.NotNil(t, err)
 	require.False(t, found)
 
 	_, _, r = store.GetRepoByNameArgsForCall(4)
 	require.Equal(t, "booyah!", r)
-
 }

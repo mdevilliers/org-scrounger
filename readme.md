@@ -18,16 +18,13 @@ Get some help.
 
 ### Run reports outputting either to JSON or format using a template file.
 
-Ensure you have a github token in your env
-
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-# get some help
-./team-reporter -h
+./team-reporter report --topic foo --owner some-owner  # outputs json
 
 ./team-reporter report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
-./team-reporter report --topic foo --owner some-owner  # outputs json
+
 ./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 

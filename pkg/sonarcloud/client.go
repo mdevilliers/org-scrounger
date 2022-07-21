@@ -2,6 +2,7 @@ package sonarcloud
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -69,7 +70,7 @@ func (c *Client) Host() string {
 // Relative URLs should always be specified without a preceding slash. If
 // specified, the value pointed to by body is JSON-encoded and included as the
 // request body.
-func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(path)
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 		contentType = "application/json"
 	}
 
-	request, err := http.NewRequest(method, url.String(), buf)
+	request, err := http.NewRequestWithContext(ctx, method, url.String(), buf)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +113,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 { // nolint:gomnd
-		return response, fmt.Errorf("error calling Jaegar API : %d", response.StatusCode)
+		return response, fmt.Errorf("error calling API : %d", response.StatusCode)
 	}
 
 	if v != nil {
@@ -125,12 +126,12 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	return response, err
 }
 
-func (c *Client) get(path string, v interface{}) (*http.Response, error) {
-	return c.doRequest(http.MethodGet, path, nil, v)
+func (c *Client) get(ctx context.Context, path string, v interface{}) (*http.Response, error) {
+	return c.doRequest(ctx, http.MethodGet, path, nil, v)
 }
 
-func (c *Client) doRequest(method, path string, body, v interface{}) (*http.Response, error) {
-	request, err := c.NewRequest(method, path, body)
+func (c *Client) doRequest(ctx context.Context, method, path string, body, v interface{}) (*http.Response, error) {
+	request, err := c.NewRequest(ctx, method, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -148,9 +149,10 @@ type MeasureResponse struct {
 	} `json:"measures"`
 }
 
-func (c *Client) GetMeasures(componentID string) (*MeasureResponse, error) {
+func (c *Client) GetMeasures(ctx context.Context, componentID string) (*MeasureResponse, error) {
 	ret := &MeasureResponse{}
 	if _, err := c.get(
+		ctx,
 		fmt.Sprintf("/api/measures/search_history?component=%s&metrics=coverage", componentID),
 		ret); err != nil {
 		return nil, errors.Wrapf(err, "error retrieving measures '%s'", componentID)

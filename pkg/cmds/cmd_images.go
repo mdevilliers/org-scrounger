@@ -5,22 +5,14 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
+	"context"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
+	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"	
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
-)
-
-type (
-	Image struct {
-		Name    string             `json:"name"`
-		Version string             `json:"version"`
-		Count   int                `json:"count"`
-		Repo    *gh.RepositorySlim `json:"repo,omitempty"`
-	}
 )
 
 type imageProvider interface {
@@ -94,6 +86,8 @@ func imagesCmd() *cli.Command { //nolint:funlen
 
 func getImages(c *cli.Context, provider imageProvider) error {
 
+	ctx := context.Background()
+
 	mappingFile := c.Value("mapping").(string)
 	output := c.Value("output").(string)
 	ghClient := gh.NewClientFromEnv(c.Context)
@@ -109,13 +103,13 @@ func getImages(c *cli.Context, provider imageProvider) error {
 	)
 
 	if mappingFile != "" {
-		mapper, err = mapping.LoadFromFile(mappingFile, ghClient)
+		mapper, err = mapping.LoadFromFile(mappingFile)
 		if err != nil {
 			return errors.Wrap(err, "error creating mapper")
 		}
 	}
 
-	images := []Image{}
+	images := []mapping.Image{}
 
 	for _, key := range all.OrderedKeys() {
 		bits := strings.Split(key, ":")
@@ -126,15 +120,19 @@ func getImages(c *cli.Context, provider imageProvider) error {
 			version = bits[1]
 		}
 
-		image := Image{Name: imageName, Version: version, Count: all[key]}
+		image := mapping.Image{Name: imageName, Version: version, Count: all[key]}
 
 		if mapper != nil {
-			found, repo, err := mapper.RepositoryFromImage(bits[0])
-			if err != nil {
+if			_, err := mapper.MapGitHubMeta(ctx,ghClient,&image );err != nil {
 				return errors.Wrapf(err, "error mapping image '%s' to repo", bits[0])
 			}
-			if found {
-				image.Repo = &repo
+
+		sonarcloudClient , err := sonarcloud.NewClient("https://sonarcloud.io", sonarcloud.WithToken("bb9dd9740fcc06e8965be06da7b3033ab180b352"))
+		if err != nil {
+			return errors.Wrapf(err, "error creating sonarcloud client")
+		}
+		if	_, err := mapper.MapSonarcloudMeta(ctx, sonarcloudClient, &image); err != nil {
+				return errors.Wrapf(err, "error mapping image '%s' to sonarcloud", bits[0])
 			}
 		}
 		images = append(images, image)

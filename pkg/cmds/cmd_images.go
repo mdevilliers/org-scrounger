@@ -1,15 +1,16 @@
 package cmds
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
-	"context"
+
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
-	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"	
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
+	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -84,7 +85,7 @@ func imagesCmd() *cli.Command { //nolint:funlen
 	}
 }
 
-func getImages(c *cli.Context, provider imageProvider) error {
+func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
 
 	ctx := context.Background()
 
@@ -123,16 +124,18 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		image := mapping.Image{Name: imageName, Version: version, Count: all[key]}
 
 		if mapper != nil {
-if			_, err := mapper.MapGitHubMeta(ctx,ghClient,&image );err != nil {
+			if _, err := mapper.MapGitHubMeta(ctx, ghClient, &image); err != nil {
 				return errors.Wrapf(err, "error mapping image '%s' to repo", bits[0])
 			}
 
-		sonarcloudClient , err := sonarcloud.NewClient("https://sonarcloud.io", sonarcloud.WithToken("foo"))
-		if err != nil {
-			return errors.Wrapf(err, "error creating sonarcloud client")
-		}
-		if	_, err := mapper.MapSonarcloudMeta(ctx, sonarcloudClient, &image); err != nil {
-				return errors.Wrapf(err, "error mapping image '%s' to sonarcloud", bits[0])
+			clientFound, sonarcloudClient, err := sonarcloud.NewClientFromEnv("https://sonarcloud.io")
+			if err != nil {
+				return errors.Wrapf(err, "error creating sonarcloud client")
+			}
+			if clientFound {
+				if _, err := mapper.MapSonarcloudMeta(ctx, sonarcloudClient, &image); err != nil {
+					return errors.Wrapf(err, "error mapping image '%s' to sonarcloud", bits[0])
+				}
 			}
 		}
 		images = append(images, image)

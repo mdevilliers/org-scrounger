@@ -2,11 +2,11 @@ package mapping
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
+	"golang.org/x/exp/slices"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -59,7 +59,18 @@ func (m *Mapper) MapSonarcloudMeta(ctx context.Context, client measureGetter, im
 		return false, nil
 	}
 
-	fmt.Println(measures)
+	result := &Sonarcloud{}
+	if len(measures.Measures) > 0 {
+		codeCoverage := measures.Measures[0]
+
+		slices.SortFunc(codeCoverage.History, func(a, b sonarcloud.History) bool {
+			return a.Time.After(b.Time.Time)
+		})
+
+		result.CodeCoverage.Value = measures.Measures[0].History[0].Value
+		image.Sonarcloud = result
+	}
+
 	return true, nil
 }
 

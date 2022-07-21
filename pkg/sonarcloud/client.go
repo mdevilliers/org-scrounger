@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/pkg/errors"
@@ -39,6 +40,19 @@ func WithToken(token string) Option {
 	return func(c *Client) {
 		c.token = token
 	}
+}
+
+// NewClientFromEnv returns a Sonercloud API client using
+// the env var 'SONARCLOUD_TOKEN' or an error
+func NewClientFromEnv(host string, opts ...Option) (bool, *Client, error) {
+	token := os.Getenv("SONARCLOUD_TOKEN")
+	if token == "" {
+		return false, nil, errors.New("sonarcloud token not defined via 'SONARCLOUD_TOKEN'")
+	}
+	opts = append(opts, WithToken(token))
+
+	client, err := NewClient(host, opts...)
+	return true, client, err
 }
 
 // NewClient returns a new Sonarcloud API client or an error
@@ -115,7 +129,6 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	if response.StatusCode >= 400 { // nolint:gomnd
 		return response, fmt.Errorf("error calling API : %d", response.StatusCode)
 	}
-
 	if v != nil {
 		err = json.NewDecoder(response.Body).Decode(v)
 		if err == io.EOF {
@@ -139,23 +152,42 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body, v int
 	return c.Do(request, v)
 }
 
+type SonarCloudTime struct {
+	time.Time
+}
+
+func (t *SonarCloudTime) UnmarshalJSON(b []byte) error {
+	date, err := time.Parse(`"2006-01-02T15:04:05-0700"`, string(b))
+	if err != nil {
+		return err
+	}
+	t.Time = date
+	return nil
+}
+
+type History struct {
+	Time  SonarCloudTime `json:"date"`
+	Value float64        `json:"value,string"`
+}
+
+type Measure struct {
+	Metric  string    `json:"metric"`
+	History []History `json:"history"`
+}
+
 type MeasureResponse struct {
-	Measures []struct {
-		Metric  string `json:"metric"`
-		History []struct {
-			Date  time.Time `json:"date"`
-			Value float64   `json:"value"`
-		} `json:"history"`
-	} `json:"measures"`
+	Measures []Measure `json:"measures"`
 }
 
 func (c *Client) GetMeasures(ctx context.Context, componentID string) (*MeasureResponse, error) {
 	ret := &MeasureResponse{}
-	if _, err := c.get(
+	response, err := c.get(
 		ctx,
 		fmt.Sprintf("/api/measures/search_history?component=%s&metrics=coverage", componentID),
-		ret); err != nil {
+		ret)
+	if err != nil {
 		return nil, errors.Wrapf(err, "error retrieving measures '%s'", componentID)
 	}
+	defer response.Body.Close()
 	return ret, nil
 }

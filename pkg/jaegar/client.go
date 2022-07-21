@@ -101,7 +101,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode >= 400 {
+	if response.StatusCode >= 400 { // nolint: gomnd
 		return response, fmt.Errorf("error calling Jaegar API : %d", response.StatusCode)
 	}
 
@@ -137,10 +137,11 @@ type Trace struct {
 }
 
 func (c *Client) GetTraceByID(traceID string) (*Trace, error) {
-
 	ret := &Trace{}
-	if _, err := c.get(fmt.Sprintf("/api/traces/%s", traceID), ret); err != nil {
+	response, err := c.get(fmt.Sprintf("/api/traces/%s", traceID), ret)
+	if err != nil {
 		return nil, errors.Wrapf(err, "error retrieving trace '%s'", traceID)
 	}
+	defer response.Body.Close()
 	return ret, nil
 }

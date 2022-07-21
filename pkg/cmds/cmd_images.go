@@ -127,7 +127,7 @@ if			_, err := mapper.MapGitHubMeta(ctx,ghClient,&image );err != nil {
 				return errors.Wrapf(err, "error mapping image '%s' to repo", bits[0])
 			}
 
-		sonarcloudClient , err := sonarcloud.NewClient("https://sonarcloud.io", sonarcloud.WithToken("bb9dd9740fcc06e8965be06da7b3033ab180b352"))
+		sonarcloudClient , err := sonarcloud.NewClient("https://sonarcloud.io", sonarcloud.WithToken("foo"))
 		if err != nil {
 			return errors.Wrapf(err, "error creating sonarcloud client")
 		}

@@ -134,7 +134,7 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | .topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.name' | sort | uniq
+./team-reporter list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | select(.repo.topics) | .repo.topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.repo.name' | sort | uniq
 ```
 
 ### List all non-archived repos

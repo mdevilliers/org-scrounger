@@ -129,7 +129,7 @@ func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
 			}
 
 			clientFound, sonarcloudClient, err := sonarcloud.NewClientFromEnv("https://sonarcloud.io")
-			if err != nil {
+			if clientFound && err != nil {
 				return errors.Wrapf(err, "error creating sonarcloud client")
 			}
 			if clientFound {

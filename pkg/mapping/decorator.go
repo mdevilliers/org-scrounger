@@ -41,42 +41,10 @@ type (
 	}
 )
 
-func (m *Mapper) MapSonarcloudMeta(ctx context.Context, client measureGetter, image *Image) (bool, error) {
+func (m *Mapper) Decorate(ctx context.Context, repoGetter repoGetter, measuresGetter measureGetter, image *Image) (bool, error) {
 
 	clean := m.cleanImageName(image.Name)
-
-	status, sonarcloudKey := m.resolve(sonarcloudNamespace, clean)
-	if status == noMappingFound {
-		return false, nil
-	}
-
-	measures, err := client.GetMeasures(ctx, sonarcloudKey)
-
-	if err != nil {
-		// sonarcloud info is optional so don't error
-		// TODO : maybe we need to log the negative?
-		return false, nil
-	}
-
-	result := &Sonarcloud{}
-	if len(measures.Measures) > 0 {
-		codeCoverage := measures.Measures[0]
-
-		slices.SortFunc(codeCoverage.History, func(a, b sonarcloud.History) bool {
-			return a.Time.After(b.Time.Time)
-		})
-
-		result.CodeCoverage.Value = measures.Measures[0].History[0].Value
-		image.Sonarcloud = result
-	}
-
-	return true, nil
-}
-
-func (m *Mapper) MapGitHubMeta(ctx context.Context, client repoGetter, image *Image) (bool, error) {
-
-	clean := m.cleanImageName(image.Name)
-	status, resolved := m.resolve(imageNamespace, clean)
+	status, resolved, keys := m.resolve(imageNamespace, clean)
 	switch status {
 	case ignored:
 		return false, nil
@@ -86,11 +54,41 @@ func (m *Mapper) MapGitHubMeta(ctx context.Context, client repoGetter, image *Im
 
 	org, reponame := split(resolved, m.defaultOwner)
 
-	repo, _, err := client.GetRepoByName(ctx, org, reponame)
+	repo, _, err := repoGetter.GetRepoByName(ctx, org, reponame)
 	if err != nil {
 		return false, err
 	}
 	image.Repo = &repo
+
+	if len(keys) > 0 && measuresGetter != nil {
+		// look for sonargraph client ID
+		for _, k := range keys {
+			if strings.HasPrefix(k, sonarcloudNamespace) {
+				bits := strings.Split(k, ":")
+				sonarcloudKey := bits[1]
+				measures, err := measuresGetter.GetMeasures(ctx, sonarcloudKey)
+
+				if err != nil {
+					// sonarcloud info is optional so don't error
+					// TODO : maybe we need to log the negative?
+					return false, nil
+				}
+
+				result := &Sonarcloud{}
+				if len(measures.Measures) > 0 {
+					codeCoverage := measures.Measures[0]
+
+					slices.SortFunc(codeCoverage.History, func(a, b sonarcloud.History) bool {
+						return a.Time.After(b.Time.Time)
+					})
+
+					result.CodeCoverage.Value = measures.Measures[0].History[0].Value
+					image.Sonarcloud = result
+				}
+			}
+		}
+	}
+
 	return true, nil
 }
 

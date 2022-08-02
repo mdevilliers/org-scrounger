@@ -9,7 +9,10 @@ import (
 
 // Mapper gives high-level access to a parser.MappingRuleSet
 type Mapper struct {
-	containers     map[string]string
+	// reversed holds keys indexed by value
+	reversed map[string]string
+	// keyed holds values for a key
+	keyed          map[string][]string
 	ignore         map[string]interface{}
 	static         map[string]interface{}
 	defaultOwner   string
@@ -36,11 +39,11 @@ func LoadFromFile(path string) (*Mapper, error) {
 // New returns a successfully initilised Mapping instance or an error
 func New(rules *parser.MappingRuleSet) (*Mapper, error) {
 	m := &Mapper{
-		containers:     map[string]string{},
+		reversed:       map[string]string{},
+		keyed:          map[string][]string{},
 		ignore:         map[string]interface{}{},
 		static:         map[string]interface{}{},
 		containerRepos: map[string]interface{}{},
 	}
-	err := m.expand(rules)
-	return m, err
+	return m, m.expand(rules)
 }

@@ -40,20 +40,25 @@ func (m *Mapper) expand(rules *parser.MappingRuleSet) error {
 					key := e.Mapping.Key
 					m.static[key] = true
 				} else if e.Mapping.Value.String != nil {
-					key := *(e.Mapping.Value.String)
-					m.containers[key] = e.Mapping.Key
+					v := *(e.Mapping.Value.String)
+					m.reversed[v] = e.Mapping.Key
+					m.keyed[e.Mapping.Key] = []string{v}
 				} else if len(e.Mapping.Value.List) != 0 {
+					all := []string{}
 					for _, v := range e.Mapping.Value.List {
-						key := *(v.String)
-						m.containers[key] = e.Mapping.Key
+						vv := *(v.String)
+						m.reversed[vv] = e.Mapping.Key
+						all = append(all, vv)
 					}
+					m.keyed[e.Mapping.Key] = all
 				}
 			}
 		}
 	}
+
 	return nil
 }
-func (m *Mapper) resolve(namespace, name string) (status, string) {
+func (m *Mapper) resolve(namespace, name string) (status, string, []string) {
 
 	needle := name
 	if namespace != "" {
@@ -62,16 +67,16 @@ func (m *Mapper) resolve(namespace, name string) (status, string) {
 
 	_, found := m.ignore[needle]
 	if found {
-		return ignored, name
+		return ignored, name, m.keyed[needle]
 	}
-	v, found := m.containers[needle]
+	v, found := m.reversed[needle]
 	if found {
-		return ok, v
+		return ok, v, m.keyed[needle]
 	}
 
 	// try resolving with no namespace
 	if namespace != "" {
 		return m.resolve("", name)
 	}
-	return noMappingFound, name
+	return noMappingFound, name, m.keyed[name]
 }

@@ -1,6 +1,7 @@
 package images
 
 import (
+	"context"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -20,7 +21,7 @@ func NewKustomize(paths ...string) *kustomize {
 	}
 }
 
-func (k *kustomize) Images() (util.Set[string], error) {
+func (k *kustomize) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
 	for _, root := range k.paths {

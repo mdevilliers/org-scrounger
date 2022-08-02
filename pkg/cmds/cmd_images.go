@@ -17,7 +17,7 @@ import (
 )
 
 type imageProvider interface {
-	Images() (util.Set[string], error)
+	Images(ctx context.Context) (util.Set[string], error)
 }
 
 func imagesCmd() *cli.Command { //nolint:funlen
@@ -93,7 +93,7 @@ func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
 	output := c.Value("output").(string)
 	ghClient := gh.NewClientFromEnv(c.Context)
 
-	all, err := provider.Images()
+	all, err := provider.Images(ctx)
 
 	if err != nil {
 		return err // already wrapped

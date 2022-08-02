@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MappedImageIsReturned(t *testing.T) { // nolint: funlen
+func Test_MappedImageIsReturned(t *testing.T) { // nolint:funlen
 
 	reader := strings.NewReader(`
 owner = "org-1"
@@ -83,7 +83,7 @@ needle > ["image:no", "image:yes", "something_else:maybe", "sonarcloud:foo"]
 	require.Equal(t, "booyah!", r)
 }
 
-func Test_NamespacedItemIsReturned(t *testing.T) { // nolint: funlen
+func Test_NamespacedItemIsReturned(t *testing.T) {
 
 	reader := strings.NewReader(`
 owner = "org-1"

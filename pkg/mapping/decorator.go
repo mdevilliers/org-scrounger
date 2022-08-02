@@ -41,7 +41,7 @@ type (
 	}
 )
 
-func (m *Mapper) Decorate(ctx context.Context, repoGetter repoGetter, measuresGetter measureGetter, image *Image) (bool, error) {
+func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, image *Image) (bool, error) {
 
 	clean := m.cleanImageName(image.Name)
 	status, resolved, keys := m.resolve(imageNamespace, clean)
@@ -54,19 +54,19 @@ func (m *Mapper) Decorate(ctx context.Context, repoGetter repoGetter, measuresGe
 
 	org, reponame := split(resolved, m.defaultOwner)
 
-	repo, _, err := repoGetter.GetRepoByName(ctx, org, reponame)
+	repo, _, err := rg.GetRepoByName(ctx, org, reponame)
 	if err != nil {
 		return false, err
 	}
 	image.Repo = &repo
 
-	if len(keys) > 0 && measuresGetter != nil {
+	if len(keys) > 0 && mg != nil {
 		// look for sonargraph client ID
 		for _, k := range keys {
 			if strings.HasPrefix(k, sonarcloudNamespace) {
 				bits := strings.Split(k, ":")
 				sonarcloudKey := bits[1]
-				measures, err := measuresGetter.GetMeasures(ctx, sonarcloudKey)
+				measures, err := mg.GetMeasures(ctx, sonarcloudKey)
 
 				if err != nil {
 					// sonarcloud info is optional so don't error

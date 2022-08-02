@@ -129,12 +129,12 @@ func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
 				return errors.Wrapf(err, "error creating sonarcloud client")
 			}
 			if clientFound {
-				if _, err := mapper.Decorate(ctx,ghClient, sonarcloudClient, &image); err != nil {
+				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", bits[0])
-				}else {
-			if _, err := mapper.Decorate(ctx, ghClient,nil, &image); err != nil {
-				return errors.Wrapf(err, "error mapping image '%s' to repo", bits[0])
-			}
+				} else {
+					if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
+						return errors.Wrapf(err, "error mapping image '%s' to repo", bits[0])
+					}
 				}
 			}
 		}

@@ -36,8 +36,7 @@ needle > ["image:no", "image:yes", "something_else:maybe", "sonarcloud:foo"]
 	store := &mappingfakes.FakeRepoGetter{}
 	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, nil)
 
-	mapper, err := New(rules)
-	require.Nil(t, err)
+	mapper := New(rules)
 
 	found, err := mapper.Decorate(ctx, store, nil, image)
 	require.Nil(t, err)
@@ -94,8 +93,7 @@ needle > ["abc:no", "def:yes", "maybe"]
 	rules, err := parser.UnMarshal("foo", reader)
 	require.Nil(t, err)
 
-	mapper, err := New(rules)
-	require.Nil(t, err)
+	mapper := New(rules)
 
 	s, v, _ := mapper.resolve("abc", "bar")
 	require.Equal(t, ok, s)

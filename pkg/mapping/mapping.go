@@ -33,11 +33,11 @@ func LoadFromFile(path string) (*Mapper, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading mapping file")
 	}
-	return New(rules)
+	return New(rules), nil
 }
 
 // New returns a successfully initilised Mapping instance or an error
-func New(rules *parser.MappingRuleSet) (*Mapper, error) {
+func New(rules *parser.MappingRuleSet) *Mapper {
 	m := &Mapper{
 		reversed:       map[string]string{},
 		keyed:          map[string][]string{},
@@ -45,5 +45,6 @@ func New(rules *parser.MappingRuleSet) (*Mapper, error) {
 		static:         map[string]interface{}{},
 		containerRepos: map[string]interface{}{},
 	}
-	return m, m.expand(rules)
+	m.expand(rules)
+	return m
 }

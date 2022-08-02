@@ -14,7 +14,7 @@ const (
 	noMappingFound
 )
 
-func (m *Mapper) expand(rules *parser.MappingRuleSet) error {
+func (m *Mapper) expand(rules *parser.MappingRuleSet) {
 
 	for _, e := range rules.Entries {
 		if e.Field != nil {
@@ -55,9 +55,8 @@ func (m *Mapper) expand(rules *parser.MappingRuleSet) error {
 			}
 		}
 	}
-
-	return nil
 }
+
 func (m *Mapper) resolve(namespace, name string) (status, string, []string) {
 
 	needle := name

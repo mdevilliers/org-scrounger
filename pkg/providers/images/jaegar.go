@@ -1,6 +1,8 @@
 package images
 
 import (
+	"context"
+
 	"github.com/mdevilliers/org-scrounger/pkg/jaegar"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
 )
@@ -17,7 +19,7 @@ func NewJaegar(url, traceID string) *jaegarProvider {
 	}
 }
 
-func (j *jaegarProvider) Images() (util.Set[string], error) {
+func (j *jaegarProvider) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
 	client, err := jaegar.NewClient(j.url)
@@ -25,7 +27,7 @@ func (j *jaegarProvider) Images() (util.Set[string], error) {
 		return all, err // already wrapped
 	}
 
-	trace, err := client.GetTraceByID(j.traceID)
+	trace, err := client.GetTraceByID(ctx, j.traceID)
 	if err != nil {
 		return all, err // already wrapped
 	}

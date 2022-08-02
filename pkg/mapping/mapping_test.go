@@ -1,17 +1,18 @@
 package mapping
 
 import (
-	"errors"
+	"context"
 	"strings"
 	"testing"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/mappingfakes"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MappedRepoIsReturned(t *testing.T) { // nolint: funlen
+func Test_MappedImageIsReturned(t *testing.T) { // nolint:funlen
 
 	reader := strings.NewReader(`
 owner = "org-1"
@@ -24,19 +25,21 @@ static > _
 
 foo > "bar"
 org-2/foo > "image:other-org"
-needle > ["image:no", "image:yes", "something_else:maybe"]
-
+needle > ["image:no", "image:yes", "something_else:maybe", "sonarcloud:foo"]
 `)
 	rules, err := parser.UnMarshal("foo", reader)
 	require.Nil(t, err)
 
+	ctx := context.Background()
+	image := &Image{Name: "bar"}
+
 	store := &mappingfakes.FakeRepoGetter{}
 	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, nil)
 
-	mapper, err := New(rules, store)
+	mapper, err := New(rules)
 	require.Nil(t, err)
 
-	found, _, err := mapper.RepositoryFromImage("bar")
+	found, err := mapper.Decorate(ctx, store, nil, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -44,7 +47,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-1", org)
 
-	found, _, err = mapper.RepositoryFromImage("other-org")
+	image = &Image{Name: "other-org"}
+	found, err = mapper.Decorate(ctx, store, nil, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -52,7 +56,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "foo", r)
 	require.Equal(t, "org-2", org)
 
-	found, _, err = mapper.RepositoryFromImage("yes")
+	image = &Image{Name: "yes"}
+	found, err = mapper.Decorate(ctx, store, nil, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -60,7 +65,8 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 	require.Equal(t, "needle", r)
 
 	// lets pretend booyah! exists in github
-	found, _, err = mapper.RepositoryFromImage("booyah!")
+	image = &Image{Name: "booyah!"}
+	found, err = mapper.Decorate(ctx, store, nil, image)
 	require.Nil(t, err)
 	require.True(t, found)
 
@@ -69,12 +75,37 @@ needle > ["image:no", "image:yes", "something_else:maybe"]
 
 	// lets pretend booyah! doesn;t exist in github
 	store.GetRepoByNameReturns(gh.RepositorySlim{}, gh.RateLimit{}, errors.New("error finding repo, try again"))
-
-	found, _, err = mapper.RepositoryFromImage("booyah!")
+	found, err = mapper.Decorate(ctx, store, nil, image)
 	require.NotNil(t, err)
 	require.False(t, found)
 
 	_, _, r = store.GetRepoByNameArgsForCall(4)
 	require.Equal(t, "booyah!", r)
+}
 
+func Test_NamespacedItemIsReturned(t *testing.T) {
+
+	reader := strings.NewReader(`
+owner = "org-1"
+
+foo > "abc:bar"
+needle > ["abc:no", "def:yes", "maybe"]
+`)
+	rules, err := parser.UnMarshal("foo", reader)
+	require.Nil(t, err)
+
+	mapper, err := New(rules)
+	require.Nil(t, err)
+
+	s, v, _ := mapper.resolve("abc", "bar")
+	require.Equal(t, ok, s)
+	require.Equal(t, "foo", v)
+
+	s, v, _ = mapper.resolve("does-not-exist", "maybe")
+	require.Equal(t, ok, s)
+	require.Equal(t, "needle", v)
+
+	s, v, _ = mapper.resolve("def", "yes")
+	require.Equal(t, ok, s)
+	require.Equal(t, "needle", v)
 }

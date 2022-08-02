@@ -18,16 +18,13 @@ Get some help.
 
 ### Run reports outputting either to JSON or format using a template file.
 
-Ensure you have a github token in your env
-
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-# get some help
-./team-reporter -h
+./team-reporter report --topic foo --owner some-owner  # outputs json
 
 ./team-reporter report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
-./team-reporter report --topic foo --owner some-owner  # outputs json
+
 ./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 
@@ -137,7 +134,7 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | .topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.name' | sort | uniq
+./team-reporter list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | select(.repo.topics) | .repo.topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.repo.name' | sort | uniq
 ```
 
 ### List all non-archived repos

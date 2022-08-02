@@ -1,23 +1,28 @@
-package jaegar
+package sonarcloud
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"time"
 
 	"github.com/pkg/errors"
 )
 
-// Client manages communication with the Jaegar HTTP API.
+// Client manages communication with the Sonarcloud HTTP API.
 type Client struct {
 	host *url.URL // Base host URL for API requests.
 
 	// HTTP client used to communicate with the API. By default
 	// http.DefaultClient will be used.
 	httpClient *http.Client
+
+	token string
 }
 
 // Option can be supplied that override the default Clients properties
@@ -30,7 +35,27 @@ func WithHTTPClient(httpClient *http.Client) Option {
 	}
 }
 
-// NewClient returns a new Jaegar API client or an error
+// WithToken sepcifies the sonarcloud token to use
+func WithToken(token string) Option {
+	return func(c *Client) {
+		c.token = token
+	}
+}
+
+// NewClientFromEnv returns a Sonercloud API client using
+// the env var 'SONARCLOUD_TOKEN' or an error
+func NewClientFromEnv(host string, opts ...Option) (bool, *Client, error) {
+	token := os.Getenv("SONARCLOUD_TOKEN")
+	if token == "" {
+		return false, nil, errors.New("sonarcloud token not defined via 'SONARCLOUD_TOKEN'")
+	}
+	opts = append(opts, WithToken(token))
+
+	client, err := NewClient(host, opts...)
+	return true, client, err
+}
+
+// NewClient returns a new Sonarcloud API client or an error
 func NewClient(host string, opts ...Option) (*Client, error) {
 	hostURL, err := url.Parse(host)
 	if err != nil {
@@ -59,7 +84,7 @@ func (c *Client) Host() string {
 // Relative URLs should always be specified without a preceding slash. If
 // specified, the value pointed to by body is JSON-encoded and included as the
 // request body.
-func (c *Client) NewRequest(method, path string, body interface{}) (*http.Request, error) {
+func (c *Client) NewRequest(ctx context.Context, method, path string, body interface{}) (*http.Request, error) {
 	rel, err := url.Parse(path)
 	if err != nil {
 		return nil, err
@@ -78,11 +103,11 @@ func (c *Client) NewRequest(method, path string, body interface{}) (*http.Reques
 		contentType = "application/json"
 	}
 
-	request, err := http.NewRequest(method, url.String(), buf)
+	request, err := http.NewRequestWithContext(ctx, method, url.String(), buf)
 	if err != nil {
 		return nil, err
 	}
-
+	request.SetBasicAuth(c.token, "")
 	request.Header.Set("Accept", "application/json")
 	if contentType != "" {
 		request.Header.Set("Content-Type", contentType)
@@ -101,10 +126,9 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode >= 400 { // nolint: gomnd
-		return response, fmt.Errorf("error calling Jaegar API : %d", response.StatusCode)
+	if response.StatusCode >= 400 { // nolint:gomnd
+		return response, fmt.Errorf("error calling API : %d", response.StatusCode)
 	}
-
 	if v != nil {
 		err = json.NewDecoder(response.Body).Decode(v)
 		if err == io.EOF {
@@ -115,12 +139,12 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	return response, err
 }
 
-func (c *Client) get(path string, v interface{}) (*http.Response, error) {
-	return c.doRequest(http.MethodGet, path, nil, v)
+func (c *Client) get(ctx context.Context, path string, v interface{}) (*http.Response, error) {
+	return c.doRequest(ctx, http.MethodGet, path, nil, v)
 }
 
-func (c *Client) doRequest(method, path string, body, v interface{}) (*http.Response, error) {
-	request, err := c.NewRequest(method, path, body)
+func (c *Client) doRequest(ctx context.Context, method, path string, body, v interface{}) (*http.Response, error) {
+	request, err := c.NewRequest(ctx, method, path, body)
 	if err != nil {
 		return nil, err
 	}
@@ -128,19 +152,41 @@ func (c *Client) doRequest(method, path string, body, v interface{}) (*http.Resp
 	return c.Do(request, v)
 }
 
-type Trace struct {
-	Data []struct {
-		Processes map[string]struct {
-			ServiceName string `json:"serviceName"`
-		} `json:"processes"`
-	} `json:"data"`
+type SonarCloudTime struct {
+	time.Time
 }
 
-func (c *Client) GetTraceByID(traceID string) (*Trace, error) {
-	ret := &Trace{}
-	response, err := c.get(fmt.Sprintf("/api/traces/%s", traceID), ret)
+func (t *SonarCloudTime) UnmarshalJSON(b []byte) error {
+	date, err := time.Parse(`"2006-01-02T15:04:05-0700"`, string(b))
 	if err != nil {
-		return nil, errors.Wrapf(err, "error retrieving trace '%s'", traceID)
+		return err
+	}
+	t.Time = date
+	return nil
+}
+
+type History struct {
+	Time  SonarCloudTime `json:"date"`
+	Value float64        `json:"value,string"`
+}
+
+type Measure struct {
+	Metric  string    `json:"metric"`
+	History []History `json:"history"`
+}
+
+type MeasureResponse struct {
+	Measures []Measure `json:"measures"`
+}
+
+func (c *Client) GetMeasures(ctx context.Context, componentID string) (*MeasureResponse, error) {
+	ret := &MeasureResponse{}
+	response, err := c.get(
+		ctx,
+		fmt.Sprintf("/api/measures/search_history?component=%s&metrics=coverage", componentID),
+		ret)
+	if err != nil {
+		return nil, errors.Wrapf(err, "error retrieving measures '%s'", componentID)
 	}
 	defer response.Body.Close()
 	return ret, nil

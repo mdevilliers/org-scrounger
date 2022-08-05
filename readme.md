@@ -6,15 +6,7 @@ A highly opinionated CLI to aid me in my day-to-day tasks engineer managing a la
 [![ci](https://github.com/mdevilliers/org-scrounger/actions/workflows/ci.yaml/badge.svg)](https://github.com/mdevilliers/org-scrounger/actions/workflows/ci.yaml)
 [![ReportCard](https://goreportcard.com/badge/github.com/mdevilliers/org-scrounger)](https://goreportcard.com/report/github.com/mdevilliers/org-scrounger)
 
-
 ## Examples
-
-Get some help.
-
-```
-# get some help
-./team-reporter -h
-```
 
 ### Run reports outputting either to JSON or format using a template file.
 

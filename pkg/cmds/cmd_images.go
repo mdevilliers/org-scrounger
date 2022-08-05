@@ -85,7 +85,7 @@ func imagesCmd() *cli.Command { //nolint:funlen
 	}
 }
 
-func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
+func getImages(c *cli.Context, provider imageProvider) error { //nolint:funlen
 
 	ctx := context.Background()
 
@@ -117,7 +117,7 @@ func getImages(c *cli.Context, provider imageProvider) error { // nolint:funlen
 
 		imageName := bits[0]
 		version := "unknown"
-		if len(bits) == 2 { // nolint: gomnd
+		if len(bits) == 2 { //nolint: gomnd
 			version = bits[1]
 		}
 

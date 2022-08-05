@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_MappedImageIsReturned(t *testing.T) { // nolint:funlen
+func Test_MappedImageIsReturned(t *testing.T) { //nolint:funlen
 
 	reader := strings.NewReader(`
 owner = "org-1"

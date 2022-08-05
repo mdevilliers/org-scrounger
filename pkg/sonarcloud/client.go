@@ -126,7 +126,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode >= 400 { // nolint:gomnd
+	if response.StatusCode >= 400 { //nolint:gomnd
 		return response, fmt.Errorf("error calling API : %d", response.StatusCode)
 	}
 	if v != nil {

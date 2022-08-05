@@ -18,7 +18,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func reportCmd() *cli.Command { // nolint: funlen
+func reportCmd() *cli.Command { //nolint: funlen
 	return &cli.Command{
 		Name: "report",
 		Flags: []cli.Flag{
@@ -122,7 +122,7 @@ func reportCmd() *cli.Command { // nolint: funlen
 			all := Data{Repositories: map[string]Details{}}
 			allmutex := sync.Mutex{}
 
-			pool := pond.New(5, 0, pond.MinWorkers(3)) // nolint: gomnd
+			pool := pond.New(5, 0, pond.MinWorkers(3)) //nolint: gomnd
 			defer pool.StopAndWait()
 			group, ctx := pool.GroupContext(ctx)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func listCmd() *cli.Command { // nolint: funlen
+func listCmd() *cli.Command { //nolint: funlen
 	return &cli.Command{
 		Name: "list",
 		Flags: []cli.Flag{

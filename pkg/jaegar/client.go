@@ -102,7 +102,7 @@ func (c *Client) Do(req *http.Request, v interface{}) (*http.Response, error) {
 	}
 	defer response.Body.Close()
 
-	if response.StatusCode >= 400 { // nolint: gomnd
+	if response.StatusCode >= 400 { //nolint: gomnd
 		return response, fmt.Errorf("error calling Jaegar API : %d", response.StatusCode)
 	}
 

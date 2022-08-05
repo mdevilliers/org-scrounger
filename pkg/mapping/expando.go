@@ -36,7 +36,7 @@ func (m *Mapper) expand(rules *parser.MappingRuleSet) {
 					m.ignore[key] = true
 				}
 			} else if e.Mapping.Value != nil {
-				if e.Mapping.Value.Wildcard != nil { // nolint: gocritic
+				if e.Mapping.Value.Wildcard != nil { //nolint: gocritic
 					key := e.Mapping.Key
 					m.static[key] = true
 				} else if e.Mapping.Value.String != nil {

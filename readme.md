@@ -13,11 +13,11 @@ A highly opinionated CLI to aid me in my day-to-day tasks engineer managing a la
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter report --topic foo --owner some-owner  # outputs json
+./scrng report --topic foo --owner some-owner  # outputs json
 
-./team-reporter report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
+./scrng report --output template --topic foo --owner some-owner > team-foo.html # outputs html for all repos with tag
 
-./team-reporter report --output template --repo some-repo --owner some-owner # outputs html for one repo
+./scrng report --output template --repo some-repo --owner some-owner # outputs html for one repo
 ```
 
 ### List all of the docker images used in a kustomize configuration.
@@ -25,13 +25,13 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter images kustomize --root {some-path} --root {some-other-path } # list all images
+./scrng images kustomize --root {some-path} --root {some-other-path } # list all images
 ```
 
 ### List all services in a Jaegar trace 
 
 ```
-./team-reporter images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e
+./scrng images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e
 ```
 
 ### List all of the docker images used in a kustomize configuration and map to repositories
@@ -39,7 +39,7 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter images kustomize --root {some-path} --root {some-other-path } --mapping {some-file-path}
+./scrng images kustomize --root {some-path} --root {some-other-path } --mapping {some-file-path}
 ```
 
 An example mapping file 
@@ -109,7 +109,7 @@ Example output
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e --mapping mappings.conf
+./scrng images jaegar --trace-id=231d6db2c8be1d28a7c86d67716cf39e --mapping mappings.conf
 
 ```
 
@@ -118,7 +118,7 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter list --topic foo --owner some-owner | jq
+./scrng list --topic foo --owner some-owner | jq
 ```
 
 ### List all repos without specific topics (in the example one, two or three)
@@ -126,7 +126,7 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | select(.repo.topics) | .repo.topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.repo.name' | sort | uniq
+./scrng list -owner some-owner --omit-archived | jq -c '.[] |. as $parent | select(.repo.topics) | .repo.topics |  select( all( test("one|two|three") == false )) | $parent' | jq -r  '.repo.name' | sort | uniq
 ```
 
 ### List all non-archived repos
@@ -134,5 +134,5 @@ export GITHUB_TOKEN=xxxxxxxxxxx
 ```
 export GITHUB_TOKEN=xxxxxxxxxxx
 
-./team-reporter list -owner some-owner --omit-archived
+./scrng list -owner some-owner --omit-archived
 ```

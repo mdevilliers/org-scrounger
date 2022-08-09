@@ -4,7 +4,7 @@ GOLANGCI_LINT_VERSION=1.48.0
 
 # Build a binary
 .PHONY: build
-build: CMD = ./cmd/team-reporter
+build: CMD = ./cmd/scrng
 build:
 	go build $(CMD)
 

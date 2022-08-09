@@ -10,7 +10,7 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:  "team-reporter",
+		Name:  "scrng",
 		Usage: "",
 		Action: func(c *cli.Context) error {
 			return nil

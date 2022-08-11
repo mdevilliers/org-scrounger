@@ -36,7 +36,7 @@ func LoadFromFile(path string) (*Mapper, error) {
 	return New(rules), nil
 }
 
-// New returns a successfully initilised Mapping instance or an error
+// New returns a successfully initilised Mapping instance
 func New(rules *parser.MappingRuleSet) *Mapper {
 	m := &Mapper{
 		reversed:       map[string]string{},

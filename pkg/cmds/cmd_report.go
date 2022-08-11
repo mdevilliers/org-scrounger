@@ -45,11 +45,6 @@ func reportCmd() *cli.Command { //nolint: funlen
 				Value: false,
 				Usage: "log the rate limit metrics from github",
 			},
-			&cli.StringFlag{
-				Name:  "template-file",
-				Value: "../../template/index.html",
-				Usage: "specify path to template file. Uses go's template syntax",
-			},
 			&cli.StringSliceFlag{
 				Name:    "not-released",
 				Aliases: []string{"nr"},

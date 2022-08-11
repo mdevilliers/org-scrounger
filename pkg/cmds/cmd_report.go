@@ -2,16 +2,11 @@ package cmds
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/alitto/pond"
-	"github.com/mdevilliers/org-scrounger/pkg/funcs"
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
@@ -38,11 +33,8 @@ func reportCmd() *cli.Command { //nolint: funlen
 				Usage:    "github organisation",
 				Required: true,
 			},
-			&cli.StringFlag{
-				Name:  "output",
-				Value: JSONOutputStr,
-				Usage: fmt.Sprintf("specify output format [template, %s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
-			},
+			output.CLIOutputTemplateJSONFlag,
+			output.CLITemplateFileFlag,
 			&cli.BoolFlag{
 				Name:  "omit-archived",
 				Value: false,
@@ -77,8 +69,6 @@ func reportCmd() *cli.Command { //nolint: funlen
 			topic := c.Value("topic").(string)
 			repo := c.Value("repo").(string)
 			owner := c.Value("owner").(string)
-			output := c.Value("output").(string)
-			templateFile := c.Value("template-file").(string)
 			notReleased := c.Value("not-released").(cli.StringSlice)
 			skipList := c.Value("skip").(cli.StringSlice)
 			omitArchived := c.Value("omit-archived").(bool)
@@ -168,29 +158,12 @@ func reportCmd() *cli.Command { //nolint: funlen
 			if err := group.Wait(); err != nil {
 				return err
 			}
-			switch output {
-			case JSONOutputStr:
-				b, err := json.Marshal(all)
-				if err != nil {
-					return errors.Wrap(err, "error marshalling to json")
-				}
-				os.Stdout.Write(b)
-			case "template":
 
-				_, file := filepath.Split(templateFile)
-				tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
-
-				if err != nil {
-					return errors.Wrap(err, "error parsing template")
-				}
-
-				if err := tmpl.Execute(os.Stdout, all); err != nil {
-					return errors.Wrap(err, "error executing template")
-				}
-			default:
-				return errors.New("unknown output - needs to be template or json")
+			outputter, err := output.GetFromCLIContext(c)
+			if err != nil {
+				return err
 			}
-			return nil
+			return outputter(all)
 		},
 	}
 }

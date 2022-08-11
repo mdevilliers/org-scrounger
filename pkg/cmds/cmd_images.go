@@ -2,11 +2,9 @@ package cmds
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"os"
 	"strings"
 
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
@@ -20,7 +18,7 @@ type imageProvider interface {
 	Images(ctx context.Context) (util.Set[string], error)
 }
 
-func imagesCmd() *cli.Command { //nolint:funlen
+func imagesCmd() *cli.Command {
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
@@ -36,11 +34,7 @@ func imagesCmd() *cli.Command { //nolint:funlen
 						Name:  "mapping",
 						Usage: "path to a mapping file",
 					},
-					&cli.StringFlag{
-						Name:  "output",
-						Value: JSONOutputStr,
-						Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
-					},
+					output.CLIOutputJSONFlag,
 				},
 				Action: func(c *cli.Context) error {
 					roots := c.Value("root").(cli.StringSlice)
@@ -65,12 +59,7 @@ func imagesCmd() *cli.Command { //nolint:funlen
 						Usage:    "trace ID",
 						Required: true,
 					},
-
-					&cli.StringFlag{
-						Name:  "output",
-						Value: JSONOutputStr,
-						Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
-					},
+					output.CLIOutputJSONFlag,
 				},
 				Action: func(c *cli.Context) error {
 
@@ -85,12 +74,11 @@ func imagesCmd() *cli.Command { //nolint:funlen
 	}
 }
 
-func getImages(c *cli.Context, provider imageProvider) error { //nolint:funlen
+func getImages(c *cli.Context, provider imageProvider) error {
 
 	ctx := context.Background()
 
 	mappingFile := c.Value("mapping").(string)
-	output := c.Value("output").(string)
 	ghClient := gh.NewClientFromEnv(c.Context)
 
 	all, err := provider.Images(ctx)
@@ -140,17 +128,9 @@ func getImages(c *cli.Context, provider imageProvider) error { //nolint:funlen
 		}
 		images = append(images, image)
 	}
-
-	switch output {
-	case JSONOutputStr:
-		b, err := json.Marshal(images)
-		if err != nil {
-			return errors.Wrap(err, "error marshalling to json")
-		}
-		os.Stdout.Write(b)
-	default:
-		return errors.New("unknown output")
+	outputter, err := output.GetFromCLIContext(c)
+	if err != nil {
+		return err
 	}
-
-	return nil
+	return outputter(images)
 }

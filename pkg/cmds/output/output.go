@@ -49,7 +49,7 @@ func GetFromCLIContext(ctx *cli.Context) (func(data any) error, error) {
 	if out == JSONOutputStr {
 		return JSONer(os.Stdout)
 	}
-	return NoOp()
+	return nil, errors.New("unknown output - needs to be template or json")
 }
 
 func Templater(wr io.Writer, templateFile string) (func(data any) error, error) {
@@ -78,8 +78,4 @@ func JSONer(wr io.Writer) (func(data any) error, error) {
 		_, err = wr.Write(b)
 		return err
 	}, nil
-}
-
-func NoOp() (func(data any) error, error) {
-	return nil, errors.New("unknown output - needs to be template or json")
 }

@@ -2,16 +2,13 @@ package cmds
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"os"
 
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
-func listCmd() *cli.Command { //nolint: funlen
+func listCmd() *cli.Command {
 	return &cli.Command{
 		Name: "list",
 		Flags: []cli.Flag{
@@ -26,11 +23,7 @@ func listCmd() *cli.Command { //nolint: funlen
 				Usage:    "github organisation",
 				Required: true,
 			},
-			&cli.StringFlag{
-				Name:  "output",
-				Value: JSONOutputStr,
-				Usage: fmt.Sprintf("specify output format [%s]. Default is '%s'.", JSONOutputStr, JSONOutputStr),
-			},
+			output.CLIOutputJSONFlag,
 			&cli.BoolFlag{
 				Name:  "omit-archived",
 				Value: false,
@@ -49,7 +42,6 @@ func listCmd() *cli.Command { //nolint: funlen
 
 			topic := c.Value("topic").(string)
 			owner := c.Value("owner").(string)
-			output := c.Value("output").(string)
 			omitArchived := c.Value("omit-archived").(bool)
 			logRateLimit := c.Value("log-rate-limit").(bool)
 
@@ -69,18 +61,11 @@ func listCmd() *cli.Command { //nolint: funlen
 				}
 				all = append(all, repo)
 			}
-			switch output {
-			case JSONOutputStr:
-				b, err := json.Marshal(all)
-				if err != nil {
-					return errors.Wrap(err, "error marshalling to json")
-				}
-				os.Stdout.Write(b)
-			default:
-				return errors.New("unknown output")
+			outputter, err := output.GetFromCLIContext(c)
+			if err != nil {
+				return err
 			}
-
-			return nil
+			return outputter(all)
 		},
 	}
 }

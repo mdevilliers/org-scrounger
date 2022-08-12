@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/alitto/pond"
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/logging"
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
@@ -69,7 +70,8 @@ func reportCmd() *cli.Command { //nolint: funlen
 			omitArchived := c.Value("omit-archived").(bool)
 			logRateLimit := c.Value("log-rate-limit").(bool)
 
-			log := getRateLimitLogger(logRateLimit)
+			logging.Init()
+			log := logging.GetRateLimitLogger(logRateLimit)
 
 			if topic == "" {
 				if repo == "" {

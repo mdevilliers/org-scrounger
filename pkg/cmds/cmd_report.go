@@ -70,7 +70,6 @@ func reportCmd() *cli.Command { //nolint: funlen
 			omitArchived := c.Value("omit-archived").(bool)
 			logRateLimit := c.Value("log-rate-limit").(bool)
 
-			logging.Init()
 			log := logging.GetRateLimitLogger(logRateLimit)
 
 			if topic == "" {

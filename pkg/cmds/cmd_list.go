@@ -46,7 +46,6 @@ func listCmd() *cli.Command {
 			omitArchived := c.Value("omit-archived").(bool)
 			logRateLimit := c.Value("log-rate-limit").(bool)
 
-			logging.Init()
 			log := logging.GetRateLimitLogger(logRateLimit)
 
 			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, topic)

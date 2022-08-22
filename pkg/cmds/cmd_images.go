@@ -22,74 +22,86 @@ func imagesCmd() *cli.Command {
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
-			{
-				Name: "argo",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "root",
-						Aliases: []string{"r"},
-						Usage:   "path to root of argo project",
-					},
-					&cli.StringFlag{
-						Name:  "mapping",
-						Usage: "path to a mapping file",
-					},
-					output.CLIOutputJSONFlag,
-				},
-				Action: func(c *cli.Context) error {
-					root := c.Value("root").(string)
-					argo := images.NewArgo(root)
-					return getImages(c, argo)
-				},
-			},
-			{
-				Name: "kustomize",
-				Flags: []cli.Flag{
-					&cli.StringSliceFlag{
-						Name:    "root",
-						Aliases: []string{"r"},
-						Usage:   "path to root of kustomize config",
-					},
-					&cli.StringFlag{
-						Name:  "mapping",
-						Usage: "path to a mapping file",
-					},
-					output.CLIOutputJSONFlag,
-				},
-				Action: func(c *cli.Context) error {
-					roots := c.Value("root").(cli.StringSlice)
-					kustomize := images.NewKustomize(roots.Value()...)
-					return getImages(c, kustomize)
-				},
-			},
-			{
-				Name: "jaegar",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:  "mapping",
-						Usage: "path to a mapping file",
-					},
-					&cli.StringFlag{
-						Name:  "jaegar-url",
-						Usage: "Jaegar URL",
-						Value: "http://0.0.0.0:16686",
-					},
-					&cli.StringFlag{
-						Name:     "trace-id",
-						Usage:    "trace ID",
-						Required: true,
-					},
-					output.CLIOutputJSONFlag,
-				},
-				Action: func(c *cli.Context) error {
+			imagesArgoCommand(),
+			imagesKustomizeCommand(),
+			imagesJaegarCommand(),
+		},
+	}
+}
 
-					jaegarURL := c.Value("jaegar-url").(string)
-					traceID := c.Value("trace-id").(string)
-
-					jaegar := images.NewJaegar(jaegarURL, traceID)
-					return getImages(c, jaegar)
-				},
+func imagesArgoCommand() *cli.Command {
+	return &cli.Command{
+		Name: "argo",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "root",
+				Aliases: []string{"r"},
+				Usage:   "path to root of argo project.",
 			},
+			&cli.StringFlag{
+				Name:  "mapping",
+				Usage: "path to a mapping file",
+			},
+			output.CLIOutputJSONFlag,
+		},
+		Action: func(c *cli.Context) error {
+			root := c.Value("root").(string)
+			argo := images.NewArgo(root)
+			return getImages(c, argo)
+		},
+	}
+}
+
+func imagesKustomizeCommand() *cli.Command {
+	return &cli.Command{
+		Name: "kustomize",
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:    "root",
+				Aliases: []string{"r"},
+				Usage:   "path to root of kustomize config",
+			},
+			&cli.StringFlag{
+				Name:  "mapping",
+				Usage: "path to a mapping file",
+			},
+			output.CLIOutputJSONFlag,
+		},
+		Action: func(c *cli.Context) error {
+			roots := c.Value("root").(cli.StringSlice)
+			kustomize := images.NewKustomize(roots.Value()...)
+			return getImages(c, kustomize)
+		},
+	}
+}
+
+func imagesJaegarCommand() *cli.Command {
+	return &cli.Command{
+		Name: "jaegar",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "mapping",
+				Usage: "path to a mapping file",
+			},
+			&cli.StringFlag{
+				Name:  "jaegar-url",
+				Usage: "Jaegar URL",
+				Value: "http://0.0.0.0:16686",
+			},
+			&cli.StringFlag{
+				Name:     "trace-id",
+				Usage:    "trace ID",
+				Required: true,
+			},
+			output.CLIOutputJSONFlag,
+		},
+		Action: func(c *cli.Context) error {
+
+			jaegarURL := c.Value("jaegar-url").(string)
+			traceID := c.Value("trace-id").(string)
+
+			jaegar := images.NewJaegar(jaegarURL, traceID)
+			return getImages(c, jaegar)
 		},
 	}
 }

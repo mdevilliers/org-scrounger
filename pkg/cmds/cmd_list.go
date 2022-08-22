@@ -3,6 +3,7 @@ package cmds
 import (
 	"context"
 
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/logging"
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/urfave/cli/v2"
@@ -45,7 +46,7 @@ func listCmd() *cli.Command {
 			omitArchived := c.Value("omit-archived").(bool)
 			logRateLimit := c.Value("log-rate-limit").(bool)
 
-			log := getRateLimitLogger(logRateLimit)
+			log := logging.GetRateLimitLogger(logRateLimit)
 
 			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, topic)
 			log(rateLimit)

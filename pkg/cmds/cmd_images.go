@@ -98,7 +98,10 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		}
 	}
 
-	images := []mapping.Image{}
+	outputter, err := output.GetFromCLIContext(c)
+	if err != nil {
+		return err
+	}
 
 	for _, key := range all.OrderedKeys() {
 		bits := strings.Split(key, ":")
@@ -126,11 +129,10 @@ func getImages(c *cli.Context, provider imageProvider) error {
 				}
 			}
 		}
-		images = append(images, image)
+		if err := outputter(image); err != nil {
+			return err
+		}
+
 	}
-	outputter, err := output.GetFromCLIContext(c)
-	if err != nil {
-		return err
-	}
-	return outputter(images)
+	return nil
 }

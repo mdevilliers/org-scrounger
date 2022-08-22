@@ -23,6 +23,26 @@ func imagesCmd() *cli.Command {
 		Name: "images",
 		Subcommands: []*cli.Command{
 			{
+				Name: "argo",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "root",
+						Aliases: []string{"r"},
+						Usage:   "path to root of argo project",
+					},
+					&cli.StringFlag{
+						Name:  "mapping",
+						Usage: "path to a mapping file",
+					},
+					output.CLIOutputJSONFlag,
+				},
+				Action: func(c *cli.Context) error {
+					root := c.Value("root").(string)
+					argo := images.NewArgo(root)
+					return getImages(c, argo)
+				},
+			},
+			{
 				Name: "kustomize",
 				Flags: []cli.Flag{
 					&cli.StringSliceFlag{

@@ -9,7 +9,6 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/mdevilliers/org-scrounger/pkg/funcs"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
@@ -55,7 +54,7 @@ func GetFromCLIContext(ctx *cli.Context) (func(data any) error, error) {
 func Templater(wr io.Writer, templateFile string) (func(data any) error, error) {
 
 	_, file := filepath.Split(templateFile)
-	tmpl, err := template.New(file).Funcs(funcs.FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
+	tmpl, err := template.New(file).Funcs(FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
 
 	if err != nil {
 		return nil, errors.Wrap(err, "error parsing template")

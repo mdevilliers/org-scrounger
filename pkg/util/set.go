@@ -40,13 +40,18 @@ func (s Set[T]) OrderedKeys() []T {
 
 func (s Set[T]) Join(x Set[T]) Set[T] {
 
+	dst := NewSet[T]()
+	for k := range s {
+		dst[k] = s[k]
+	}
+
 	for k := range x {
-		_, found := s[k]
+		_, found := dst[k]
 		if found {
-			s[k] += x[k]
+			dst[k] += x[k]
 		} else {
-			s[k] = x[k]
+			dst[k] = x[k]
 		}
 	}
-	return s
+	return dst
 }

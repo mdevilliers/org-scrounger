@@ -37,3 +37,16 @@ func (s Set[T]) OrderedKeys() []T {
 	slices.Sort(r)
 	return r
 }
+
+func (s Set[T]) Join(x Set[T]) Set[T] {
+
+	for k := range x {
+		_, found := s[k]
+		if found {
+			s[k] += x[k]
+		} else {
+			s[k] = x[k]
+		}
+	}
+	return s
+}

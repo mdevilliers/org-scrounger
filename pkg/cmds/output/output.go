@@ -9,7 +9,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/mdevilliers/org-scrounger/pkg/funcs"
+	"github.com/mdevilliers/org-scrounger/pkg/cmds/output/funcs"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )

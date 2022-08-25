@@ -1,4 +1,4 @@
-package funcs
+package output
 
 import (
 	"text/template"

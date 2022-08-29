@@ -8,7 +8,7 @@ require (
 	github.com/alitto/pond v1.8.1
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/pkg/errors v0.9.1
-	github.com/rs/zerolog v1.27.0
+	github.com/rs/zerolog v1.28.0
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.11.2

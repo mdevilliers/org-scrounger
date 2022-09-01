@@ -33,12 +33,15 @@ func (k *kustomize) Images(ctx context.Context) (util.Set[string], error) {
 }
 
 func runKustomizeAndSelect(directory, xpath string, set util.Set[string]) error {
-
 	// run kustomize in root - get back big ball of yaml
 	output, err := exec.GetCommandOutput(directory, "kustomize", "build")
 	if err != nil {
 		return errors.Wrap(err, "error running kustomize")
 	}
+	return splitYAMLAndRunXPath(output, xpath, set)
+}
+
+func splitYAMLAndRunXPath(output string, xpath string, set util.Set[string]) error {
 	// split out to the individual documents
 	yamls := strings.Split(output, "\n---\n")
 

@@ -3,10 +3,14 @@ package images
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
 
-	"github.com/argoproj/argo-cd/v2/util/io/path"
-	"github.com/argoproj/argo-cd/v2/util/helm"
+	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v3"
 )
 
 type argoProvider struct {
@@ -19,49 +23,82 @@ func NewArgo(paths ...string) *argoProvider {
 	}
 }
 
+type ArgoApplication struct {
+	Kind string
+	Spec struct {
+		Source struct {
+			RepoURL        string `yaml:"repoURL"`
+			Path           string
+			TargetRevision string `yaml:"targetRevision"`
+			Helm           *struct {
+				ReleaseName string
+				Parameters  []struct {
+					Name  string
+					Value string
+				}
+			}
+		}
+	}
+}
+
 func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
-	/*dir, err := ioutil.TempDir(".", "prefix")
-	if err != nil {
-		return nil, err
-	}
-	defer os.RemoveAll(dir)
-*/
-dir := "/Users/markdevilliers/Desktop/git/adarga-ltd/helm-charts"
-	repo := helm.HelmRepository{
-		Name: "helm-charts",
-		Repo: "https://github.com/Adarga-Ltd/helm-charts",
-	}
-	passCredentials := false
-	proxy := ""
-	helmApp, err := helm.NewHelmApp(dir, []helm.HelmRepository{repo}, false, "v3", proxy, passCredentials)
+	// argo image provider ONLY understands Argo helm based applications
+	// obviously we can expand upon this in future...
 
-	if err != nil {
-		return nil, err
+	for _, p := range a.paths {
+
+		data, err := ioutil.ReadFile(p)
+		if err != nil {
+			return nil, errors.Wrap(err, "error loading YAML file")
+		}
+
+		var app ArgoApplication
+		if err = yaml.Unmarshal(data, &app); err != nil {
+			return nil, errors.Wrap(err, "error unmarshalling YAML")
+		}
+
+		if app.Spec.Source.Helm == nil {
+			return nil, errors.New("error finding Helm definition defined")
+		}
+
+		directory, err := ioutil.TempDir(".", "prefix")
+		if err != nil {
+			return nil, err
+		}
+		defer os.RemoveAll(directory)
+
+		if _, err = exec.GetCommandOutput(directory, "git", "clone", app.Spec.Source.RepoURL, "foo"); err != nil {
+			return nil, errors.Wrap(err, "error running git clone")
+		}
+
+		directory = path.Join(directory, "foo")
+
+		if _, err = exec.GetCommandOutput(directory, "git", "checkout", app.Spec.Source.TargetRevision); err != nil {
+			return nil, errors.Wrap(err, "error running git checkout")
+		}
+
+		args := []string{
+			"template",
+		}
+
+		for _, p := range app.Spec.Source.Helm.Parameters {
+			args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, p.Value))
+		}
+
+		args = append(args, "foo")
+		args = append(args, app.Spec.Source.Path)
+
+		output, err := exec.GetCommandOutput(directory, "helm", args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "error running helm template")
+		}
+
+		if err = splitYAMLAndRunXPath(output, "$..spec.containers[*].image", all); err != nil {
+			return nil, errors.Wrap(err, "error extracting images")
+		}
 	}
-
-	fmt.Println(helmApp)
-	valuesPath := dir + "/charts/bench-micro-ui/values.yaml" 
-	opts := &helm.TemplateOpts{
-		Name: "test",
-		Set: map[string]string{
-			"service.type": "LoadBalancer",
-			"service.port": "1234",
-		},
-		SetString: map[string]string{
-			"service.annotations.prometheus\\.io/scrape": "true",
-		},
-		Values: []path.ResolvedFilePath{path.ResolvedFilePath(valuesPath)},
-	}
-
-out, err := helmApp.Template(opts)
-	if err != nil {
-		return nil, err
-	}
-
-fmt.Println(out)
-
 	return all, nil
 
 }

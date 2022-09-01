@@ -36,7 +36,7 @@ func imagesArgoCommand() *cli.Command {
 			&cli.StringSliceFlag{
 				Name:    "root",
 				Aliases: []string{"r"},
-				Usage:   "path to root of argo application",
+				Usage:   "path to argo application",
 			},
 			&cli.StringFlag{
 				Name:  "mapping",

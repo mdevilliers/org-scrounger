@@ -28,11 +28,12 @@ type measureGetter interface {
 
 type (
 	Image struct {
-		Name       string             `json:"name"`
-		Version    string             `json:"version"`
-		Count      int                `json:"count"`
-		Repo       *gh.RepositorySlim `json:"repo,omitempty"`
-		Sonarcloud *Sonarcloud        `json:"sonarcloud,omitempty"`
+		Name                      string             `json:"name"`
+		DockerContainerRepository string             `json:"docker_container_repository"`
+		Version                   string             `json:"version"`
+		Count                     int                `json:"count"`
+		Repo                      *gh.RepositorySlim `json:"repo,omitempty"`
+		Sonarcloud                *Sonarcloud        `json:"sonarcloud,omitempty"`
 	}
 	Sonarcloud struct {
 		CodeCoverage struct {
@@ -43,13 +44,19 @@ type (
 
 func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, image *Image) (bool, error) {
 
-	clean := m.cleanImageName(image.Name)
-	status, resolved, keys := m.resolve(imageNamespace, clean)
+	repoName, imageName := m.parseImageAndContainerRepo(image.Name)
+
+	if repoName != "" {
+		image.Name = imageName
+		image.DockerContainerRepository = repoName
+	}
+
+	status, resolved, keys := m.resolve(imageNamespace, imageName)
 	switch status {
 	case ignored:
 		return false, nil
 	case noMappingFound:
-		resolved = clean
+		resolved = imageName
 	}
 
 	org, reponame := split(resolved, m.defaultOwner)
@@ -100,11 +107,12 @@ func split(repo, defaultOwner string) (string, string) {
 	return bits[0], bits[1]
 }
 
-func (m *Mapper) cleanImageName(name string) string {
+// parseImageAndContainerRepo returns the container repo and the image name.
+func (m *Mapper) parseImageAndContainerRepo(name string) (string, string) {
 	for k := range m.containerRepos {
 		if strings.HasPrefix(name, k) {
-			return strings.Replace(name, k, "", 1)
+			return k, strings.Replace(name, k, "", 1)
 		}
 	}
-	return name
+	return "", name
 }

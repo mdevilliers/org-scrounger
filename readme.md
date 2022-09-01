@@ -81,7 +81,8 @@ Example output
 ```
 [
  {
-    "name": "foo-container-repo/bar",
+    "name": "bar",
+    "docker_container_repository" : "foo-container-repo",
     "version": "0.3.2",
     "count": 1,
     "repo": {

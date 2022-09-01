@@ -19,6 +19,7 @@ lint:
 	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)
 	./bin/golangci-lint run
 
+# Generate the mocks (embedded via go generate)
 .PHONY: mocks
 mocks:
 	go generate ./...

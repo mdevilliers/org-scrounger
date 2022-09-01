@@ -64,7 +64,6 @@ func runKustomizeAndSelect(directory, xpath string, set util.Set[string]) error 
 				set.Add(i)
 			}
 		}
-
 	}
 	return nil
 }

@@ -34,8 +34,8 @@ func imagesArgoCommand() *cli.Command {
 		Name: "argo",
 		Flags: []cli.Flag{
 			&cli.StringSliceFlag{
-				Name:    "root",
-				Aliases: []string{"r"},
+				Name:    "path",
+				Aliases: []string{"p"},
 				Usage:   "path to argo application",
 			},
 			&cli.StringFlag{
@@ -152,6 +152,7 @@ func getImages(c *cli.Context, provider imageProvider) error {
 				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", imageName)
 				}
+			}else{
 				if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo", imageName)
 				}

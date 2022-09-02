@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 )
@@ -11,6 +12,7 @@ func GetCommandOutput(dir string, name string, args ...string) (string, error) {
 	if dir != "" {
 		e.Dir = dir
 	}
+	e.Env = os.Environ()
 	data, err := e.CombinedOutput()
 	text := string(data)
 	text = strings.TrimSpace(text)

@@ -22,8 +22,32 @@ func imagesCmd() *cli.Command {
 	return &cli.Command{
 		Name: "images",
 		Subcommands: []*cli.Command{
-			imagesKustomizeCommand(),
+			imagesArgoCommand(),
 			imagesJaegarCommand(),
+			imagesKustomizeCommand(),
+		},
+	}
+}
+
+func imagesArgoCommand() *cli.Command {
+	return &cli.Command{
+		Name: "argo",
+		Flags: []cli.Flag{
+			&cli.StringSliceFlag{
+				Name:    "path",
+				Aliases: []string{"p"},
+				Usage:   "path to argo application",
+			},
+			&cli.StringFlag{
+				Name:  "mapping",
+				Usage: "path to a mapping file",
+			},
+			output.CLIOutputJSONFlag,
+		},
+		Action: func(c *cli.Context) error {
+			roots := c.Value("root").(cli.StringSlice)
+			argo := images.NewArgo(roots.Value()...)
+			return getImages(c, argo)
 		},
 	}
 }
@@ -127,10 +151,10 @@ func getImages(c *cli.Context, provider imageProvider) error {
 			if clientFound {
 				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", imageName)
-				} else {
-					if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
-						return errors.Wrapf(err, "error mapping image '%s' to repo", imageName)
-					}
+				}
+			} else {
+				if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
+					return errors.Wrapf(err, "error mapping image '%s' to repo", imageName)
 				}
 			}
 		}

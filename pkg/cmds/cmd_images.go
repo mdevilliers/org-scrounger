@@ -152,7 +152,7 @@ func getImages(c *cli.Context, provider imageProvider) error {
 				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", imageName)
 				}
-			}else{
+			} else {
 				if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
 					return errors.Wrapf(err, "error mapping image '%s' to repo", imageName)
 				}

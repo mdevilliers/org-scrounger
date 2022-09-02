@@ -45,8 +45,8 @@ func imagesArgoCommand() *cli.Command {
 			output.CLIOutputJSONFlag,
 		},
 		Action: func(c *cli.Context) error {
-			roots := c.Value("root").(cli.StringSlice)
-			argo := images.NewArgo(roots.Value()...)
+			paths := c.Value("path").(cli.StringSlice)
+			argo := images.NewArgo(paths.Value()...)
 			return getImages(c, argo)
 		},
 	}

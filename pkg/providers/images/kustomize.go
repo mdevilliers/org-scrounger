@@ -24,8 +24,8 @@ func NewKustomize(paths ...string) *kustomize {
 func (k *kustomize) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
-	for _, root := range k.paths {
-		if err := runKustomizeAndSelect(root, "$..spec.containers[*].image", all); err != nil {
+	for _, path := range k.paths {
+		if err := runKustomizeAndSelect(path, "$..spec.containers[*].image", all); err != nil {
 			return nil, err
 		}
 	}

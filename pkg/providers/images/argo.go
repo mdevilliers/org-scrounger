@@ -3,7 +3,6 @@ package images
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 
@@ -44,12 +43,18 @@ type ArgoApplication struct {
 func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
+	directory, err := os.TempDir()
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(directory)
+
 	// argo image provider ONLY understands Argo helm based applications
 	// obviously we can expand upon this in future...
 
 	for _, p := range a.paths {
 
-		data, err := ioutil.ReadFile(p)
+		data, err := os.ReadFile(p)
 		if err != nil {
 			return nil, errors.Wrap(err, "error loading YAML file")
 		}
@@ -63,20 +68,9 @@ func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 			return nil, errors.New("error finding Helm definition defined")
 		}
 
-		directory, err := ioutil.TempDir(".", "prefix")
+		root, err := cachedGithubCheckout(directory, app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
 		if err != nil {
-			return nil, err
-		}
-		defer os.RemoveAll(directory)
-
-		if _, err = exec.GetCommandOutput(directory, "git", "clone", app.Spec.Source.RepoURL, "foo"); err != nil {
-			return nil, errors.Wrap(err, "error running git clone")
-		}
-
-		directory = path.Join(directory, "foo")
-
-		if _, err = exec.GetCommandOutput(directory, "git", "checkout", app.Spec.Source.TargetRevision); err != nil {
-			return nil, errors.Wrap(err, "error running git checkout")
+			return nil, errors.Wrapf(err, "error checking out %s@%s", app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
 		}
 
 		args := []string{
@@ -90,7 +84,7 @@ func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 		args = append(args, "foo")
 		args = append(args, app.Spec.Source.Path)
 
-		output, err := exec.GetCommandOutput(directory, "helm", args...)
+		output, err := exec.GetCommandOutput(root, "helm", args...)
 		if err != nil {
 			return nil, errors.Wrap(err, "error running helm template")
 		}
@@ -101,4 +95,25 @@ func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 	}
 	return all, nil
 
+}
+
+// Clones the githubURL and checkouts the 'tagOrHead' returing the directory path or an error
+func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string, error) {
+
+	folder := fmt.Sprintf("./%s-%s", githubURL, tagOrHead)
+	p := path.Join(directory, folder)
+
+	if stat, err := os.Stat(p); err == nil && stat.IsDir() {
+		return p, nil
+	}
+
+	if _, err := exec.GetCommandOutput(directory, "git", "clone", githubURL, folder); err != nil {
+		return "", errors.Wrap(err, "error running git clone")
+	}
+
+	if _, err := exec.GetCommandOutput(p, "git", "checkout", tagOrHead); err != nil {
+		return "", errors.Wrap(err, "error running git checkout")
+	}
+
+	return p, nil
 }

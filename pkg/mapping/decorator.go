@@ -34,11 +34,16 @@ type (
 		Count                     int                `json:"count"`
 		Repo                      *gh.RepositorySlim `json:"repo,omitempty"`
 		Sonarcloud                *Sonarcloud        `json:"sonarcloud,omitempty"`
+		Destination               *Destination       `json:"destination,omitempty"`
 	}
 	Sonarcloud struct {
 		CodeCoverage struct {
 			Value float64 `json:"value"`
 		} `json:"code_coverage"`
+	}
+	Destination struct {
+		Name      string `json:"name"`
+		Namespace string `json:"namespace"`
 	}
 )
 
@@ -99,6 +104,8 @@ func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, 
 	return true, nil
 }
 
+// split the input to an repo and an owner.
+// Can specify a default owner if required.
 func split(repo, defaultOwner string) (string, string) {
 	bits := strings.Split(repo, "/")
 	if len(bits) == 1 {

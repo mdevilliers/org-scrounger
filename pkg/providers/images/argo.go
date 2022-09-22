@@ -43,14 +43,8 @@ type ArgoApplication struct {
 func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
-	directory, err := os.TempDir()
-	if err != nil {
-		return nil, err
-	}
+	directory := os.TempDir()
 	defer os.RemoveAll(directory)
-
-	// argo image provider ONLY understands Argo helm based applications
-	// obviously we can expand upon this in future...
 
 	for _, p := range a.paths {
 
@@ -64,33 +58,41 @@ func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 			return nil, errors.Wrap(err, "error unmarshalling YAML")
 		}
 
-		if app.Spec.Source.Helm == nil {
-			return nil, errors.New("error finding Helm definition defined")
-		}
-
 		root, err := cachedGithubCheckout(directory, app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error checking out %s@%s", app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
 		}
 
-		args := []string{
-			"template",
-		}
+		// if it is Help we only support inlined variables
+		if app.Spec.Source.Helm != nil {
 
-		for _, p := range app.Spec.Source.Helm.Parameters {
-			args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, p.Value))
-		}
+			args := []string{
+				"template",
+			}
 
-		args = append(args, "foo")
-		args = append(args, app.Spec.Source.Path)
+			for _, p := range app.Spec.Source.Helm.Parameters {
+				args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, p.Value))
+			}
 
-		output, err := exec.GetCommandOutput(root, "helm", args...)
-		if err != nil {
-			return nil, errors.Wrap(err, "error running helm template")
-		}
+			args = append(args, "foo")
+			args = append(args, app.Spec.Source.Path)
 
-		if err = splitYAMLAndRunXPath(output, "$..spec.containers[*].image", all); err != nil {
-			return nil, errors.Wrap(err, "error extracting images")
+			content, err := exec.GetCommandOutput(root, "helm", args...)
+			if err != nil {
+				return nil, errors.Wrap(err, "error running helm template")
+			}
+
+			if err = splitYAMLAndRunXPath(content, "$..spec.containers[*].image", all); err != nil {
+				return nil, errors.Wrap(err, "error extracting images")
+			}
+
+		} else {
+
+			// assume there is a kustomise file available
+			if err := runKustomizeAndSelect(root, "$..spec.containers[*].image", all); err != nil {
+				return nil, errors.Wrap(err, "error running kustomize")
+			}
+
 		}
 	}
 	return all, nil

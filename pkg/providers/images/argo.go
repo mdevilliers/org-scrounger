@@ -43,8 +43,8 @@ type ArgoApplication struct {
 func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
 	all := util.NewSet[string]()
 
+	// use the temp dir as the root of any checkout
 	directory := os.TempDir()
-	defer os.RemoveAll(directory)
 
 	for _, p := range a.paths {
 

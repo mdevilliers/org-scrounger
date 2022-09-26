@@ -106,67 +106,6 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 	return all, nil
 }
 
-/*
-func (a *argoProvider) Images(ctx context.Context) (util.Set[string], error) {
-	all := util.NewSet[string]()
-
-	// use the temp dir as the root of any checkout
-	directory := os.TempDir()
-
-	for _, p := range a.paths {
-
-		data, err := os.ReadFile(p)
-		if err != nil {
-			return nil, errors.Wrap(err, "error loading YAML file")
-		}
-
-		var app ArgoApplication
-		if err = yaml.Unmarshal(data, &app); err != nil {
-			return nil, errors.Wrap(err, "error unmarshalling YAML")
-		}
-
-		root, err := cachedGithubCheckout(directory, app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error checking out %s@%s", app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
-		}
-
-		// if it is Help we only support inlined variables
-		if app.Spec.Source.Helm != nil {
-
-			args := []string{
-				"template",
-			}
-
-			for _, p := range app.Spec.Source.Helm.Parameters {
-				args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, p.Value))
-			}
-
-			args = append(args, "foo")
-			args = append(args, app.Spec.Source.Path)
-
-			content, err := exec.GetCommandOutput(root, "helm", args...)
-			if err != nil {
-				return nil, errors.Wrap(err, "error running helm template")
-			}
-
-			if err = splitYAMLAndRunXPath(content, "$..spec.containers[*].image", all); err != nil {
-				return nil, errors.Wrap(err, "error extracting images")
-			}
-
-		} else {
-
-			// assume there is a kustomise file available
-			p := path.Join(root, app.Spec.Source.Path)
-			if err := runKustomizeAndSelect(p, "$..spec.containers[*].image", all); err != nil {
-				return nil, errors.Wrap(err, "error running kustomize")
-			}
-
-		}
-	}
-	return all, nil
-
-}
-*/
 // Clones the githubURL and checkouts the 'tagOrHead' returing the directory path or an error
 func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string, error) {
 

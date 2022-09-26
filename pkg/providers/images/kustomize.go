@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
-	"github.com/mdevilliers/org-scrounger/pkg/util"
+	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/pkg/errors"
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
@@ -21,52 +21,93 @@ func NewKustomize(paths ...string) *kustomize {
 	}
 }
 
-func (k *kustomize) Images(ctx context.Context) (util.Set[string], error) {
-	all := util.NewSet[string]()
+func (k *kustomize) Images(ctx context.Context) ([]mapping.Image, error) {
+	all := []mapping.Image{}
 
 	for _, path := range k.paths {
-		if err := runKustomizeAndSelect(path, "$..spec.containers[*].image", all); err != nil {
-			return nil, err
+		content, err := runKustomize(path)
+		if err != nil {
+			return nil, errors.Wrap(err, "error running kustomize")
 		}
+		images, err := resolveImages(content, "unknown")
+		if err != nil {
+			return nil, errors.Wrap(err, "error extracting images")
+		}
+
+		all = append(all, images...)
+
 	}
 	return all, nil
 }
 
-func runKustomizeAndSelect(directory, xpath string, set util.Set[string]) error {
-	// run kustomize in root - get back big ball of yaml
-	output, err := exec.GetCommandOutput(directory, "kustomize", "build")
-	if err != nil {
-		return errors.Wrap(err, "error running kustomize")
-	}
-	return splitYAMLAndRunXPath(output, xpath, set)
+// runKustomize shells out to a directory and returns a
+// big ball of yaml or an error
+func runKustomize(directory string) (string, error) {
+	return exec.GetCommandOutput(directory, "kustomize", "build")
 }
 
-func splitYAMLAndRunXPath(output string, xpath string, set util.Set[string]) error {
+// resolveImages produces a slice of Images or an error
+func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
+
+	all := []mapping.Image{}
+
 	// split out to the individual documents
-	yamls := strings.Split(output, "\n---\n")
+	yamls := strings.Split(probablyYaml, "\n---\n")
 
 	for _, yamlstr := range yamls {
 		// extract all the .image values
 		var n yaml.Node
 
 		if err := yaml.Unmarshal([]byte(yamlstr), &n); err != nil {
-			return errors.Wrap(err, "error unmarshalling kustomize output")
+			return nil, errors.Wrap(err, "error unmarshalling yaml")
 		}
 
-		path, err := yamlpath.NewPath(xpath)
+		namespaceElement, err := compileAndExecuteXpath("$..metadata.namespace", &n)
 		if err != nil {
-			return errors.Wrap(err, "error creating yaml path")
+			return nil, errors.Wrap(err, "error running namespace xpath")
 		}
-		elements, err := path.Find(&n)
+		if len(namespaceElement) == 1 {
+			namespace = namespaceElement[0].Value
+		}
+
+		imageElements, err := compileAndExecuteXpath("$..spec.containers[*].image", &n)
 		if err != nil {
-			return errors.Wrap(err, "error finding image nodes")
+			return nil, errors.Wrap(err, "error running image xpath")
 		}
-		for _, element := range elements {
-			i := strings.TrimSpace(element.Value)
-			if i != "" {
-				set.Add(i)
-			}
+		for _, element := range imageElements {
+
+			image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
+
+			all = append(all, mapping.Image{
+				Name:    image,
+				Version: version,
+				Count:   1, // TODO: parse out the replicaCount value
+				Destination: &mapping.Destination{
+					Namespace: namespace,
+				},
+			})
 		}
+
 	}
-	return nil
+	return all, nil
+}
+
+func compileAndExecuteXpath(xpath string, document *yaml.Node) ([]*yaml.Node, error) {
+	path, err := yamlpath.NewPath(xpath)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating yaml path")
+	}
+	return path.Find(document)
+}
+
+func splitImageAndVersion(name string) (string, string) {
+
+	bits := strings.Split(name, ":")
+
+	imageName := bits[0]
+	version := "unknown"
+	if len(bits) == 2 { //nolint: gomnd
+		version = bits[1]
+	}
+	return imageName, version
 }

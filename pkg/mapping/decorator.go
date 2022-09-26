@@ -42,7 +42,6 @@ type (
 		} `json:"code_coverage"`
 	}
 	Destination struct {
-		Name      string `json:"name"`
 		Namespace string `json:"namespace"`
 	}
 )

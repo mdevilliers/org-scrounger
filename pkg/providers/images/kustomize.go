@@ -2,6 +2,7 @@ package images
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -62,6 +63,19 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 			return nil, errors.Wrap(err, "error unmarshalling yaml")
 		}
 
+		replicas := 1
+		replicasElement, err := compileAndExecuteXpath("$..spec.replicas", &n)
+		if err != nil {
+			return nil, errors.Wrap(err, "error running replicas xpath")
+		}
+		if len(replicasElement) == 1 {
+			replicas, err = strconv.Atoi(replicasElement[0].Value)
+
+			if err != nil {
+				return nil, errors.Wrap(err, "error parsing replica count")
+			}
+		}
+
 		namespaceElement, err := compileAndExecuteXpath("$..metadata.namespace", &n)
 		if err != nil {
 			return nil, errors.Wrap(err, "error running namespace xpath")
@@ -81,7 +95,7 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 			all = append(all, mapping.Image{
 				Name:    image,
 				Version: version,
-				Count:   1, // TODO: parse out the replicaCount value
+				Count:   replicas,
 				Destination: &mapping.Destination{
 					Namespace: namespace,
 				},

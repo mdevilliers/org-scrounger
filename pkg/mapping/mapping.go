@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
-	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 )
 
@@ -52,11 +51,11 @@ func New(rules *parser.MappingRuleSet) *Mapper {
 
 // Static returns the set of statically defined repos
 // that wouldn;t be usually discoverable
-func (m *Mapper) Static() util.Set[string] {
-	all := util.NewSet[string]()
+func (m *Mapper) Static() []Image {
+	all := []Image{}
 
 	for k := range m.static {
-		all.Add(k)
+		all = append(all, Image{Name: k})
 	}
 
 	return all

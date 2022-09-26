@@ -126,9 +126,8 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		if err != nil {
 			return errors.Wrap(err, "error creating mapper")
 		}
-		// TODO: fix this
-		//		static := mapper.Static()
-		//		all = all.Join(static)
+		static := mapper.Static()
+		all = append(all, static...)
 	}
 
 	outputter, err := output.GetFromCLIContext(c)

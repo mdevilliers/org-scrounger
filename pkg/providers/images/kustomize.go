@@ -2,6 +2,7 @@ package images
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -50,7 +51,7 @@ func runKustomize(directory string) (string, error) {
 // resolveImages produces a slice of Images or an error
 func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 
-	all := []mapping.Image{}
+	all := map[string]mapping.Image{}
 
 	// split out to the individual documents
 	yamls := strings.Split(probablyYaml, "\n---\n")
@@ -91,19 +92,32 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 		for _, element := range imageElements {
 
 			image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
-
-			all = append(all, mapping.Image{
+			i := mapping.Image{
 				Name:    image,
 				Version: version,
 				Count:   replicas,
 				Destination: &mapping.Destination{
 					Namespace: namespace,
 				},
-			})
+			}
+			key := fmt.Sprintf("%s_%s", i.Name, i.Version)
+			v, exists := all[key]
+			if !exists {
+				all[key] = i
+			} else {
+				v.Count++
+				all[key] = v
+			}
 		}
 
 	}
-	return all, nil
+
+	ret := []mapping.Image{}
+	for _, v := range all {
+		ret = append(ret, v)
+	}
+
+	return ret, nil
 }
 
 func compileAndExecuteXpath(xpath string, document *yaml.Node) ([]*yaml.Node, error) {

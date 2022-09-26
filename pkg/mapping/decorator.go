@@ -81,7 +81,7 @@ func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, 
 
 				if err != nil {
 					// sonarcloud info is optional so don't error
-					// TODO : maybe we need to log the negative?
+					// REVIEW : maybe we need to log the negative?
 					return false, nil
 				}
 

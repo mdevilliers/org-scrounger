@@ -49,7 +49,7 @@ func runKustomize(directory string) (string, error) {
 }
 
 // resolveImages produces a slice of Images or an error
-func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
+func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //nolint:funlen
 
 	all := map[string]mapping.Image{}
 
@@ -64,19 +64,6 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 			return nil, errors.Wrap(err, "error unmarshalling yaml")
 		}
 
-		replicas := 1
-		replicasElement, err := compileAndExecuteXpath("$..spec.replicas", &n)
-		if err != nil {
-			return nil, errors.Wrap(err, "error running replicas xpath")
-		}
-		if len(replicasElement) == 1 {
-			replicas, err = strconv.Atoi(replicasElement[0].Value)
-
-			if err != nil {
-				return nil, errors.Wrap(err, "error parsing replica count")
-			}
-		}
-
 		namespaceElement, err := compileAndExecuteXpath("$..metadata.namespace", &n)
 		if err != nil {
 			return nil, errors.Wrap(err, "error running namespace xpath")
@@ -85,31 +72,45 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 			namespace = namespaceElement[0].Value
 		}
 
-		imageElements, err := compileAndExecuteXpath("$..spec.containers[*].image", &n)
+		specElements, err := compileAndExecuteXpath("$..spec", &n)
 		if err != nil {
-			return nil, errors.Wrap(err, "error running image xpath")
-		}
-		for _, element := range imageElements {
-
-			image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
-			i := mapping.Image{
-				Name:    image,
-				Version: version,
-				Count:   replicas,
-				Destination: &mapping.Destination{
-					Namespace: namespace,
-				},
-			}
-			key := fmt.Sprintf("%s_%s", i.Name, i.Version)
-			v, exists := all[key]
-			if !exists {
-				all[key] = i
-			} else {
-				v.Count++
-				all[key] = v
-			}
+			return nil, errors.Wrap(err, "error running spec xpath")
 		}
 
+		for _, spec := range specElements {
+			imageElements, err := compileAndExecuteXpath("$..containers[*].image", spec)
+			if err != nil {
+				return nil, errors.Wrap(err, "error running image xpath")
+			}
+			if len(imageElements) == 0 {
+				continue
+			}
+			for _, element := range imageElements {
+
+				replicas, err := parseReplicaCount(element)
+				if err != nil {
+					return nil, errors.Wrap(err, "error running replicas xpath")
+				}
+
+				image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
+				i := mapping.Image{
+					Name:    image,
+					Version: version,
+					Count:   replicas,
+					Destination: &mapping.Destination{
+						Namespace: namespace,
+					},
+				}
+				key := fmt.Sprintf("%s_%s", i.Name, i.Version)
+				v, exists := all[key]
+				if !exists {
+					all[key] = i
+				} else {
+					v.Count++
+					all[key] = v
+				}
+			}
+		}
 	}
 
 	ret := []mapping.Image{}
@@ -118,6 +119,18 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) {
 	}
 
 	return ret, nil
+}
+
+func parseReplicaCount(n *yaml.Node) (int, error) {
+	replicasElement, err := compileAndExecuteXpath(".replicas", n)
+	if err != nil {
+		return 0, errors.Wrap(err, "error running replicas xpath")
+	}
+	if len(replicasElement) == 1 {
+		return strconv.Atoi(replicasElement[0].Value)
+	}
+	// somethingelse but don't blow up
+	return 0, nil
 }
 
 func compileAndExecuteXpath(xpath string, document *yaml.Node) ([]*yaml.Node, error) {

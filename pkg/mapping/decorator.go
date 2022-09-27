@@ -49,7 +49,6 @@ type (
 func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, image *Image) (bool, error) {
 
 	repoName, imageName := m.parseImageAndContainerRepo(image.Name)
-
 	if repoName != "" {
 		image.Name = imageName
 		image.DockerContainerRepository = repoName

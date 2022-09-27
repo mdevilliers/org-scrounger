@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
@@ -67,21 +68,10 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 		}
 		var content string
 
-		// if it is Help we only support inlined variables
+		// if it is Helm we only support inlined variables
 		if app.Spec.Source.Helm != nil {
 
-			args := []string{
-				"template",
-			}
-
-			for _, p := range app.Spec.Source.Helm.Parameters {
-				args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, p.Value))
-			}
-
-			args = append(args, "foo")
-			args = append(args, app.Spec.Source.Path)
-
-			content, err = exec.GetCommandOutput(root, "helm", args...)
+			content, err = runHelm(root, app)
 			if err != nil {
 				return nil, errors.Wrap(err, "error running helm template")
 			}
@@ -106,7 +96,33 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 	return all, nil
 }
 
-// Clones the githubURL and checkouts the 'tagOrHead' returing the directory path or an error
+// runs Helm in the root directory returning the inflated output or an error
+func runHelm(root string, app ArgoApplication) (string, error) {
+
+	args := []string{
+		"template",
+	}
+
+	for _, p := range app.Spec.Source.Helm.Parameters {
+
+		v := p.Value
+
+		// in Helm, comma separated strings need to be escaped and wrapped in "" :shrug
+		if strings.Index(p.Value, ",") > 0 {
+			v = strings.ReplaceAll(p.Value, ",", "\\,")
+			v = fmt.Sprintf("\"%s\"", v)
+		}
+
+		args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, v))
+	}
+
+	args = append(args, "foo")
+	args = append(args, app.Spec.Source.Path)
+
+	return exec.GetCommandOutput(root, "helm", args...)
+}
+
+// clones the githubURL and checkouts the 'tagOrHead' returing the directory path or an error
 func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string, error) {
 
 	folder := fmt.Sprintf("./%s-%s", githubURL, tagOrHead)

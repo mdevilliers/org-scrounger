@@ -10,6 +10,7 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
@@ -53,6 +54,10 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 	for _, p := range a.paths {
 
 		data, err := os.ReadFile(p)
+		if errors.Is(err, os.ErrNotExist) {
+			log.Info().Msgf("file does not exist: %s", p)
+			continue
+		}
 		if err != nil {
 			return nil, errors.Wrap(err, "error loading YAML file")
 		}

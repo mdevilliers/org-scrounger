@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/mdevilliers/org-scrounger/pkg/jaegar"
-	"github.com/mdevilliers/org-scrounger/pkg/util"
+	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 )
 
 type jaegarProvider struct {
@@ -19,22 +19,24 @@ func NewJaegar(url, traceID string) *jaegarProvider {
 	}
 }
 
-func (j *jaegarProvider) Images(ctx context.Context) (util.Set[string], error) {
-	all := util.NewSet[string]()
+func (j *jaegarProvider) Images(ctx context.Context) ([]mapping.Image, error) {
+	all := []mapping.Image{}
 
 	client, err := jaegar.NewClient(j.url)
 	if err != nil {
-		return all, err // already wrapped
+		return nil, err // already wrapped
 	}
 
 	trace, err := client.GetTraceByID(ctx, j.traceID)
 	if err != nil {
-		return all, err // already wrapped
+		return nil, err // already wrapped
 	}
 
 	for _, d := range trace.Data {
 		for _, p := range d.Processes {
-			all.Add(p.ServiceName)
+			all = append(all, mapping.Image{
+				Name: p.ServiceName,
+			})
 		}
 	}
 

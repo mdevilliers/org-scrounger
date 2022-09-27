@@ -14,7 +14,7 @@ func NewSet[T constraints.Ordered]() Set[T] {
 // number of each individual item added.
 type Set[T constraints.Ordered] map[T]int
 
-// Add
+// Add an item, incrementing the count
 func (s Set[T]) Add(c T) {
 	_, found := s[c]
 	if found {
@@ -24,6 +24,7 @@ func (s Set[T]) Add(c T) {
 	}
 }
 
+// Keys returns a slice of keys
 func (s Set[T]) Keys() []T {
 	r := []T{}
 	for k := range s {
@@ -32,12 +33,14 @@ func (s Set[T]) Keys() []T {
 	return r
 }
 
+// OrderedKeys returns the keys ordered in ascending order
 func (s Set[T]) OrderedKeys() []T {
 	r := s.Keys()
 	slices.Sort(r)
 	return r
 }
 
+// Join returns the superset of two Sets
 func (s Set[T]) Join(x Set[T]) Set[T] {
 
 	dst := NewSet[T]()

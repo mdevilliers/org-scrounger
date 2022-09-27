@@ -2,20 +2,18 @@ package cmds
 
 import (
 	"context"
-	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
 	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
-	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
 type imageProvider interface {
-	Images(ctx context.Context) (util.Set[string], error)
+	Images(ctx context.Context) ([]mapping.Image, error)
 }
 
 func imagesCmd() *cli.Command {
@@ -128,9 +126,8 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		if err != nil {
 			return errors.Wrap(err, "error creating mapper")
 		}
-
 		static := mapper.Static()
-		all = all.Join(static)
+		all = append(all, static...)
 	}
 
 	outputter, err := output.GetFromCLIContext(c)
@@ -138,11 +135,9 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		return err
 	}
 
-	for _, key := range all.OrderedKeys() {
+	for n := range all {
 
-		imageName, version := splitImageAndVersion(key)
-		image := mapping.Image{Name: imageName, Version: version, Count: all[key]}
-
+		image := all[n]
 		if mapper != nil {
 			clientFound, sonarcloudClient, err := sonarcloud.NewClientFromEnv("https://sonarcloud.io")
 			if clientFound && err != nil {
@@ -150,11 +145,11 @@ func getImages(c *cli.Context, provider imageProvider) error {
 			}
 			if clientFound {
 				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
-					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", imageName)
+					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", image.Name)
 				}
 			} else {
 				if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
-					return errors.Wrapf(err, "error mapping image '%s' to repo", imageName)
+					return errors.Wrapf(err, "error mapping image '%s' to repo", image.Name)
 				}
 			}
 		}
@@ -163,16 +158,4 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		}
 	}
 	return nil
-}
-
-func splitImageAndVersion(name string) (string, string) {
-
-	bits := strings.Split(name, ":")
-
-	imageName := bits[0]
-	version := "unknown"
-	if len(bits) == 2 { //nolint: gomnd
-		version = bits[1]
-	}
-	return imageName, version
 }

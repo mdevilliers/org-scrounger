@@ -72,7 +72,7 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			namespace = namespaceElement[0].Value
 		}
 
-		specElements, err := compileAndExecuteXpath("$..spec", &n)
+		specElements, err := compileAndExecuteXpath("$..spec.*.spec", &n)
 		if err != nil {
 			return nil, errors.Wrap(err, "error running spec xpath")
 		}
@@ -85,13 +85,14 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			if len(imageElements) == 0 {
 				continue
 			}
+			// REVIEW : review this logic
+			replicas, err := parseReplicaCount(spec)
+			if err != nil {
+				return nil, errors.Wrap(err, "error running replicas xpath")
+			}
+
 			for _, element := range imageElements {
-
-				replicas, err := parseReplicaCount(element)
-				if err != nil {
-					return nil, errors.Wrap(err, "error running replicas xpath")
-				}
-
+				fmt.Println(element.Value)
 				image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
 				i := mapping.Image{
 					Name:    image,
@@ -129,8 +130,9 @@ func parseReplicaCount(n *yaml.Node) (int, error) {
 	if len(replicasElement) == 1 {
 		return strconv.Atoi(replicasElement[0].Value)
 	}
+	fmt.Println(replicasElement)
 	// somethingelse but don't blow up
-	return 0, nil
+	return 1, nil
 }
 
 func compileAndExecuteXpath(xpath string, document *yaml.Node) ([]*yaml.Node, error) {
@@ -149,6 +151,10 @@ func splitImageAndVersion(name string) (string, string) {
 	version := "unknown"
 	if len(bits) == 2 { //nolint: gomnd
 		version = bits[1]
+	}
+	// deal with shas with versions
+	if len(bits) == 3 { //nolint: gomnd
+		version = fmt.Sprintf("%s:%s", bits[1], bits[2])
 	}
 	return imageName, version
 }

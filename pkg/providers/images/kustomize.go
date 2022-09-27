@@ -92,7 +92,6 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			}
 
 			for _, element := range imageElements {
-				fmt.Println(element.Value)
 				image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
 				i := mapping.Image{
 					Name:    image,
@@ -130,7 +129,6 @@ func parseReplicaCount(n *yaml.Node) (int, error) {
 	if len(replicasElement) == 1 {
 		return strconv.Atoi(replicasElement[0].Value)
 	}
-	fmt.Println(replicasElement)
 	// somethingelse but don't blow up
 	return 1, nil
 }

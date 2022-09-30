@@ -7,10 +7,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: '0'
     - name: Bump version and push tag
-      uses: Instrument/github-tag-action@v1.0
+      uses: anothrNick/github-tag-action@1.40.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        BRANCH: main
-        BUMP: minor
+        WITH_V: true

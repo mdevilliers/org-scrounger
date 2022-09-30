@@ -1,0 +1,16 @@
+name: make-release
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: Bump version and push tag
+      uses: Instrument/github-tag-action@v1.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: main
+        BUMP: minor

@@ -1,0 +1,22 @@
+# Make sure to check the documentation at http://goreleaser.com
+builds:
+  - env:
+      - CGO_ENABLED=0
+    main: ./cmd/scrng/
+    binary: scrng
+    goos:
+      - linux
+      - windows
+      - darwin
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'

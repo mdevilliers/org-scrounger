@@ -78,7 +78,7 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 
 			content, err = runHelm(root, app)
 			if err != nil {
-				return nil, errors.Wrap(err, "error running helm template")
+				return nil, errors.Wrapf(err, "error running helm template: %s, output: %s", root, content)
 			}
 		} else {
 

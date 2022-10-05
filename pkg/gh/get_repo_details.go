@@ -24,7 +24,13 @@ type Repository struct {
 			Commit struct {
 				Message           githubv4.String `json:"message"`
 				StatusCheckRollup struct {
-					State githubv4.String `json:"state"`
+					State    githubv4.String `json:"state"`
+					Contexts struct {
+						Nodes []struct {
+							StatusContext `graphql:"... on StatusContext" json:"status_context,omitempty"`
+							CheckRun      `graphql:"... on CheckRun" json:"check_run,omitempty"`
+						} `json:"nodes"`
+					} `json:"contexts" graphql:"contexts(first:20)"`
 				} `json:"statusCheckRollup"`
 			} `graphql:"... on Commit" json:"commit"`
 		} `json:"target"`
@@ -38,6 +44,35 @@ type Repository struct {
 	} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
 	PullRequests        `graphql:"pullRequests(last:30, states:[OPEN])" json:"pull_requests"`
 	VulnerabilityAlerts `graphql:"vulnerabilityAlerts(first:100, states:[OPEN])" json:"vulnerability_alerts"`
+}
+
+type CheckRun struct {
+	Name       githubv4.String `json:"name,omitempty"`
+	Summary    githubv4.String `json:"summary,omitempty"`
+	Text       githubv4.String `json:"text,omitempty"`
+	Title      githubv4.String `json:"title,omitempty"`
+	Status     githubv4.String `json:"status,omitempty"`
+	Conclusion githubv4.String `json:"conclusion,omitempty"`
+	CheckSuite *struct {
+		WorkflowRun *struct {
+			Workflow *struct {
+				Name githubv4.String `json:"name,omitempty"`
+			} `json:"workflow,omitempty"`
+		} `json:"workflow_run,omitempty"`
+	} `json:"check_suite,omitempty"`
+}
+
+func (c CheckRun) IsEmpty() bool {
+	return c.Name == ""
+}
+
+type StatusContext struct {
+	Context githubv4.String `json:"context,omitempty"`
+	State   githubv4.String `json:"state,omitempty"`
+}
+
+func (s StatusContext) IsEmpty() bool {
+	return s.State == ""
 }
 
 func (r Repository) IsMainGreen() bool {
@@ -122,4 +157,5 @@ func (c *client) GetRepoDetails(ctx context.Context, owner, reponame string) (Re
 		return Repository{}, query.RateLimit, errors.Wrapf(err, "error querying repo details of %s/%s", owner, reponame)
 	}
 	return query.Repository, query.RateLimit, nil
+
 }

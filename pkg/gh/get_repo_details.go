@@ -27,14 +27,8 @@ type Repository struct {
 					State    githubv4.String `json:"state"`
 					Contexts struct {
 						Nodes []struct {
-							StatusContext struct {
-								Context githubv4.String `json:"context,omitempty"`
-								State   githubv4.String `json:"state,omitempty"`
-								Creator *struct {
-									Login githubv4.String `json:"login,omitempty"`
-								} `json:"creator,omitempty"`
-							} `graphql:"... on StatusContext" json:"status_context,omitempty"`
-							CheckRun `graphql:"... on CheckRun" json:"check_run,omitempty"`
+							StatusContext `graphql:"... on StatusContext" json:"status_context,omitempty"`
+							CheckRun      `graphql:"... on CheckRun" json:"check_run,omitempty"`
 						} `json:"nodes"`
 					} `json:"contexts" graphql:"contexts(first:20)"`
 				} `json:"statusCheckRollup"`
@@ -60,16 +54,26 @@ type CheckRun struct {
 	Status     githubv4.String `json:"status,omitempty"`
 	Conclusion githubv4.String `json:"conclusion,omitempty"`
 	CheckSuite *struct {
-		Creator *struct {
-			Login githubv4.String `json:"login,omitempty"`
-		} `json:"creator,omitempty"`
 		WorkflowRun *struct {
 			Workflow *struct {
 				Name githubv4.String `json:"name,omitempty"`
 			} `json:"workflow,omitempty"`
 		} `json:"workflow_run,omitempty"`
 	} `json:"check_suite,omitempty"`
-} // `graphql:"... on CheckRun" json:"check_run,omitempty"`
+}
+
+func (c CheckRun) IsEmpty() bool {
+	return c.Name == ""
+}
+
+type StatusContext struct {
+	Context githubv4.String `json:"context,omitempty"`
+	State   githubv4.String `json:"state,omitempty"`
+}
+
+func (s StatusContext) IsEmpty() bool {
+	return s.State == ""
+}
 
 func (r Repository) IsMainGreen() bool {
 	return string(r.Ref.Target.Commit.StatusCheckRollup.State) == "SUCCESS"

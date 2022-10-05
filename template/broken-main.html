@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Broken Main Report</title>
+  </head>
+<body>
+{{ range $key, $value := .Repositories }}
+{{ if ne  $value.Details.Ref.Target.Commit.StatusCheckRollup.State "SUCCESS"  }}
+  <b><a href="{{ $value.Details.URL }}"> {{$key}}</a></b> {{ $value.Details.Ref.Target.Commit.StatusCheckRollup.State }} </br>
+  {{ range $value.Details.Ref.Target.Commit.StatusCheckRollup.Contexts.Nodes }}
+    {{ if not .StatusContext.IsEmpty}}
+      {{ if ne .StatusContext.State "SUCCESS"}}
+      {{ .StatusContext.Context }} {{ .StatusContext.State }} </br>
+      {{ end}}
+    {{ else }}
+      {{ if ne .CheckRun.Conclusion "SUCCESS"}}
+        {{ .CheckRun.Name }} {{ .CheckRun.Text }} {{ .CheckRun.Conclusion}} </br>
+      {{ end}}
+    {{ end}}
+  {{ end }}
+{{ end }}
+{{ end }}
+</body>
+</html>

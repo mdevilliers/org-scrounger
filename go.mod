@@ -11,7 +11,7 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
 	github.com/stretchr/testify v1.8.0
-	github.com/urfave/cli/v2 v2.19.2
+	github.com/urfave/cli/v2 v2.20.2
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb

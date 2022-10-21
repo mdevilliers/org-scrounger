@@ -72,13 +72,12 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			namespace = namespaceElement[0].Value
 		}
 
-		specElements, err := compileAndExecuteXpath("$..spec.*.spec", &n)
+		specElements, err := compileAndExecuteXpath("$..spec", &n)
 		if err != nil {
 			return nil, errors.Wrap(err, "error running spec xpath")
 		}
-
 		for _, spec := range specElements {
-			imageElements, err := compileAndExecuteXpath("$..containers[*].image", spec)
+			imageElements, err := compileAndExecuteXpath("$..image", spec)
 			if err != nil {
 				return nil, errors.Wrap(err, "error running image xpath")
 			}

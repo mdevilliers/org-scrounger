@@ -40,11 +40,16 @@ func imagesArgoCommand() *cli.Command {
 				Name:  "mapping",
 				Usage: "path to a mapping file",
 			},
+			&cli.BoolFlag{
+				Name:  "delete-cache-on-exit",
+				Usage: "deletes all caches on exit",
+			},
 			output.CLIOutputJSONFlag,
 		},
 		Action: func(c *cli.Context) error {
 			paths := c.Value("path").(cli.StringSlice)
-			argo := images.NewArgo(paths.Value()...)
+			deleteCache := c.Value("delete-cache-on-exit").(bool)
+			argo := images.NewArgo(deleteCache, paths.Value()...)
 			return getImages(c, argo)
 		},
 	}

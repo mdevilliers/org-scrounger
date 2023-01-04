@@ -89,7 +89,6 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			if err != nil {
 				return nil, errors.Wrap(err, "error running replicas xpath")
 			}
-
 			for _, element := range imageElements {
 				image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
 				i := mapping.Image{

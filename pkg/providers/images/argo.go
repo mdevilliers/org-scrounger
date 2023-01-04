@@ -15,12 +15,14 @@ import (
 )
 
 type argoProvider struct {
-	paths []string
+	deleteCacheOnExit bool
+	paths             []string
 }
 
-func NewArgo(paths ...string) *argoProvider {
+func NewArgo(deleteCacheOnExit bool, paths ...string) *argoProvider {
 	return &argoProvider{
-		paths: paths,
+		deleteCacheOnExit: deleteCacheOnExit,
+		paths:             paths,
 	}
 }
 
@@ -50,6 +52,13 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 
 	// use the temp dir as the root of any checkout
 	directory := os.TempDir()
+	directory = path.Join(directory, "scrng")
+
+	if a.deleteCacheOnExit {
+		defer func() {
+			os.RemoveAll(directory)
+		}()
+	}
 
 	for _, p := range a.paths {
 
@@ -130,7 +139,8 @@ func runHelm(root string, app ArgoApplication) (string, error) {
 // clones the githubURL and checkouts the 'tagOrHead' returing the directory path or an error
 func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string, error) {
 
-	folder := fmt.Sprintf("./%s-%s", githubURL, tagOrHead)
+	githubFolderName := strings.ReplaceAll(githubURL, "/", "_")
+	folder := fmt.Sprintf("./%s-%s", githubFolderName, tagOrHead)
 	p := path.Join(directory, folder)
 
 	if stat, err := os.Stat(p); err == nil && stat.IsDir() {

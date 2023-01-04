@@ -1,6 +1,6 @@
 
 # Linting
-GOLANGCI_LINT_VERSION=1.50.0
+GOLANGCI_LINT_VERSION=1.50.1
 
 # Build a binary
 .PHONY: build
@@ -15,9 +15,11 @@ test:
 
 # The linting gods must be obeyed
 .PHONY: lint
-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)
+lint: ./bin/golangci-lint
 	./bin/golangci-lint run
+
+./bin/golangci-lint:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v$(GOLANGCI_LINT_VERSION)
 
 # Generate the mocks (embedded via go generate)
 .PHONY: mocks

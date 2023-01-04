@@ -143,6 +143,10 @@ func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string
 	folder := fmt.Sprintf("./%s-%s", githubFolderName, tagOrHead)
 	p := path.Join(directory, folder)
 
+	if err := os.MkdirAll(directory, os.ModePerm); err != nil {
+		return "", errors.Wrap(err, "error creating checkout directory")
+	}
+
 	if stat, err := os.Stat(p); err == nil && stat.IsDir() {
 		return p, nil
 	}

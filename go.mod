@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/alecthomas/participle/v2 v2.0.0-beta.5
-	github.com/alitto/pond v1.8.2
+	github.com/alitto/pond v1.8.3
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/rs/zerolog v1.29.0

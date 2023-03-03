@@ -1,6 +1,6 @@
 
 # Linting
-GOLANGCI_LINT_VERSION=1.50.1
+GOLANGCI_LINT_VERSION=1.51.2
 
 # Build a binary
 .PHONY: build

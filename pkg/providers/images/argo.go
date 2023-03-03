@@ -42,6 +42,7 @@ type ArgoApplication struct {
 					Name  string
 					Value string
 				}
+				Values string // :shrug
 			}
 		}
 	}
@@ -82,9 +83,7 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 		}
 		var content string
 
-		// if it is Helm we only support inlined variables
 		if app.Spec.Source.Helm != nil {
-
 			content, err = runHelm(root, app)
 			if err != nil {
 				return nil, errors.Wrapf(err, "error running helm template: %s, output: %s", root, content)
@@ -128,6 +127,20 @@ func runHelm(root string, app ArgoApplication) (string, error) {
 		}
 
 		args = append(args, "--set", fmt.Sprintf("%s=%s", p.Name, v))
+	}
+	if app.Spec.Source.Helm.Values != "" {
+
+		// create temp file with contents
+		f, err := os.CreateTemp("", "values-file")
+		if err != nil {
+			return "", errors.Wrap(err, "error creating tempfile")
+		}
+		defer os.Remove(f.Name())
+
+		if _, err = f.WriteString(app.Spec.Source.Helm.Values); err != nil {
+			return "", errors.Wrap(err, "error writing to  tempfile")
+		}
+		args = append(args, "-f", f.Name())
 	}
 
 	args = append(args, "foo")

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -48,7 +47,7 @@ func (c *client) GetUnreleasedCommitsForRepo(ctx context.Context, owner, reponam
 	}
 
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return ret, query.RateLimit, errors.Wrap(err, "error querying github")
+		return ret, query.RateLimit, fmt.Errorf("error querying github: %w", err)
 	}
 	latestTagOid := "unknown"
 	ret.LastTag = Tag{Oid: latestTagOid, Tag: "unknown"}

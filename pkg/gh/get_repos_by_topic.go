@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -59,7 +58,7 @@ func (c *client) GetReposWithTopic(ctx context.Context, owner, topic string) ([]
 
 	for {
 		if err := c.graph.Query(ctx, &query, variables); err != nil {
-			return nil, rl, errors.Wrap(err, "error querying github")
+			return nil, rl, fmt.Errorf("error querying github: %w", err)
 		}
 		for _, r := range query.Search.Nodes {
 			topics := []string{}

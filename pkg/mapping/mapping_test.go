@@ -2,13 +2,13 @@ package mapping
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/mappingfakes"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 

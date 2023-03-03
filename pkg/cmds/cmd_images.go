@@ -2,13 +2,13 @@ package cmds
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
 	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -129,7 +129,7 @@ func getImages(c *cli.Context, provider imageProvider) error {
 	if mappingFile != "" {
 		mapper, err = mapping.LoadFromFile(mappingFile)
 		if err != nil {
-			return errors.Wrap(err, "error creating mapper")
+			return fmt.Errorf("error creating mapper: %w", err)
 		}
 		static := mapper.Static()
 		all = append(all, static...)
@@ -146,15 +146,15 @@ func getImages(c *cli.Context, provider imageProvider) error {
 		if mapper != nil {
 			clientFound, sonarcloudClient, err := sonarcloud.NewClientFromEnv("https://sonarcloud.io")
 			if clientFound && err != nil {
-				return errors.Wrapf(err, "error creating sonarcloud client")
+				return fmt.Errorf("error creating sonarcloud client: %w", err)
 			}
 			if clientFound {
 				if _, err := mapper.Decorate(ctx, ghClient, sonarcloudClient, &image); err != nil {
-					return errors.Wrapf(err, "error mapping image '%s' to repo and sonarcloud", image.Name)
+					return fmt.Errorf("error mapping image '%s' to repo and sonarcloud: %w", image.Name, err)
 				}
 			} else {
 				if _, err := mapper.Decorate(ctx, ghClient, nil, &image); err != nil {
-					return errors.Wrapf(err, "error mapping image '%s' to repo", image.Name)
+					return fmt.Errorf("error mapping image '%s' to repo: %w", image.Name, err)
 				}
 			}
 		}

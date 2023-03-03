@@ -2,6 +2,7 @@ package images
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -9,7 +10,6 @@ import (
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
-	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
@@ -69,24 +69,24 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 			continue
 		}
 		if err != nil {
-			return nil, errors.Wrap(err, "error loading YAML file")
+			return nil, fmt.Errorf("error loading YAML file: %w", err)
 		}
 
 		var app ArgoApplication
 		if err = yaml.Unmarshal(data, &app); err != nil {
-			return nil, errors.Wrap(err, "error unmarshalling YAML")
+			return nil, fmt.Errorf("error unmarshalling YAML: %w", err)
 		}
 
 		root, err := cachedGithubCheckout(directory, app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
 		if err != nil {
-			return nil, errors.Wrapf(err, "error checking out %s@%s", app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision)
+			return nil, fmt.Errorf("error checking out %s@%s: %w", app.Spec.Source.RepoURL, app.Spec.Source.TargetRevision, err)
 		}
 		var content string
 
 		if app.Spec.Source.Helm != nil {
 			content, err = runHelm(root, app)
 			if err != nil {
-				return nil, errors.Wrapf(err, "error running helm template: %s, output: %s", root, content)
+				return nil, fmt.Errorf("error running helm template: %s, output: %s : %w", root, content, err)
 			}
 		} else {
 
@@ -94,13 +94,13 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 			p := path.Join(root, app.Spec.Source.Path)
 			content, err = runKustomize(p)
 			if err != nil {
-				return nil, errors.Wrap(err, "error running kustomize")
+				return nil, fmt.Errorf("error running kustomize: %w", err)
 			}
 		}
 
 		images, err := resolveImages(content, app.Spec.Destination.Namespace)
 		if err != nil {
-			return nil, errors.Wrap(err, "error extracting images")
+			return nil, fmt.Errorf("error extracting images: %w", err)
 		}
 
 		all = append(all, images...)
@@ -133,12 +133,12 @@ func runHelm(root string, app ArgoApplication) (string, error) {
 		// create temp file with contents
 		f, err := os.CreateTemp("", "values-file")
 		if err != nil {
-			return "", errors.Wrap(err, "error creating tempfile")
+			return "", fmt.Errorf("error creating tempfile: %w", err)
 		}
 		defer os.Remove(f.Name())
 
 		if _, err = f.WriteString(app.Spec.Source.Helm.Values); err != nil {
-			return "", errors.Wrap(err, "error writing to  tempfile")
+			return "", fmt.Errorf("error writing to  tempfile: %w", err)
 		}
 		args = append(args, "-f", f.Name())
 	}
@@ -157,7 +157,7 @@ func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string
 	p := path.Join(directory, folder)
 
 	if err := os.MkdirAll(directory, os.ModePerm); err != nil {
-		return "", errors.Wrap(err, "error creating checkout directory")
+		return "", fmt.Errorf("error creating checkout directory: %w", err)
 	}
 
 	if stat, err := os.Stat(p); err == nil && stat.IsDir() {
@@ -165,11 +165,11 @@ func cachedGithubCheckout(directory string, githubURL, tagOrHead string) (string
 	}
 
 	if _, err := exec.GetCommandOutput(directory, "git", "clone", githubURL, folder); err != nil {
-		return "", errors.Wrap(err, "error running git clone")
+		return "", fmt.Errorf("error running git clone: %w", err)
 	}
 
 	if _, err := exec.GetCommandOutput(p, "git", "checkout", tagOrHead); err != nil {
-		return "", errors.Wrap(err, "error running git checkout")
+		return "", fmt.Errorf("error running git checkout: %w", err)
 	}
 
 	return p, nil

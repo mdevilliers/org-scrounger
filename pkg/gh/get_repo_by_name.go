@@ -2,8 +2,8 @@ package gh
 
 import (
 	"context"
+	"fmt"
 
-	"github.com/pkg/errors"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -39,7 +39,7 @@ func (c *client) GetRepoByName(ctx context.Context, owner, repo string) (Reposit
 	}
 
 	if err := c.graph.Query(ctx, &query, variables); err != nil {
-		return RepositorySlim{}, RateLimit{}, errors.Wrap(err, "error querying github")
+		return RepositorySlim{}, RateLimit{}, fmt.Errorf("error querying github: %w", err)
 	}
 	r := query.Repository
 

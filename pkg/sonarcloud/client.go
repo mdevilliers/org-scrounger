@@ -4,14 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Client manages communication with the Sonarcloud HTTP API.
@@ -59,7 +58,7 @@ func NewClientFromEnv(host string, opts ...Option) (bool, *Client, error) {
 func NewClient(host string, opts ...Option) (*Client, error) {
 	hostURL, err := url.Parse(host)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error parsing url %s", host)
+		return nil, fmt.Errorf("error parsing url %s : %w", host, err)
 	}
 
 	c := &Client{
@@ -186,7 +185,7 @@ func (c *Client) GetMeasures(ctx context.Context, componentID string) (*MeasureR
 		fmt.Sprintf("/api/measures/search_history?component=%s&metrics=coverage", componentID),
 		ret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error retrieving measures '%s'", componentID)
+		return nil, fmt.Errorf("error retrieving measures '%s': %w", componentID, err)
 	}
 	defer response.Body.Close()
 	return ret, nil

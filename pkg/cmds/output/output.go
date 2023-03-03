@@ -2,6 +2,7 @@ package output
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -57,12 +57,12 @@ func Templater(wr io.Writer, templateFile string) (func(data any) error, error) 
 	tmpl, err := template.New(file).Funcs(FuncMap()).Funcs(sprig.TxtFuncMap()).ParseFiles(templateFile)
 
 	if err != nil {
-		return nil, errors.Wrap(err, "error parsing template")
+		return nil, fmt.Errorf("error parsing template: %w", err)
 	}
 
 	return func(data any) error {
 		if err := tmpl.Execute(wr, data); err != nil {
-			return errors.Wrap(err, "error executing template")
+			return fmt.Errorf("error executing template: %w", err)
 		}
 		return nil
 	}, nil
@@ -72,7 +72,7 @@ func JSONer(wr io.Writer) (func(data any) error, error) {
 	return func(data any) error {
 		b, err := json.Marshal(data)
 		if err != nil {
-			return errors.Wrap(err, "error marshalling to json")
+			return fmt.Errorf("error marshalling to json: %w", err)
 		}
 		_, err = wr.Write(b)
 		return err

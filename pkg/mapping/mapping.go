@@ -1,10 +1,11 @@
 package mapping
 
 import (
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/mdevilliers/org-scrounger/pkg/mapping/parser"
-	"github.com/pkg/errors"
 )
 
 // Mapper gives high-level access to a parser.MappingRuleSet
@@ -27,11 +28,11 @@ func LoadFromFile(path string) (*Mapper, error) {
 	}
 	file, err := os.Open(path)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error opening mapping file : %s", path)
+		return nil, fmt.Errorf("error opening mapping file: %s :%w", path, err)
 	}
 	rules, err := parser.UnMarshal(path, file)
 	if err != nil {
-		return nil, errors.Wrap(err, "error reading mapping file")
+		return nil, fmt.Errorf("error reading mapping file: %w", err)
 	}
 	return New(rules), nil
 }

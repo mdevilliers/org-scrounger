@@ -8,8 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-
-	"github.com/pkg/errors"
 )
 
 // Client manages communication with the Jaegar HTTP API.
@@ -35,7 +33,7 @@ func WithHTTPClient(httpClient *http.Client) Option {
 func NewClient(host string, opts ...Option) (*Client, error) {
 	hostURL, err := url.Parse(host)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error parsing url %s", host)
+		return nil, fmt.Errorf("error parsing url %s: %w", host, err)
 	}
 
 	c := &Client{
@@ -141,7 +139,7 @@ func (c *Client) GetTraceByID(ctx context.Context, traceID string) (*Trace, erro
 	ret := &Trace{}
 	response, err := c.get(ctx, fmt.Sprintf("/api/traces/%s", traceID), ret)
 	if err != nil {
-		return nil, errors.Wrapf(err, "error retrieving trace '%s'", traceID)
+		return nil, fmt.Errorf("error retrieving trace '%s': %w", traceID, err)
 	}
 	defer response.Body.Close()
 	return ret, nil

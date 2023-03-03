@@ -2,6 +2,7 @@ package cmds
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
-	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
@@ -74,7 +74,7 @@ func reportCmd() *cli.Command { //nolint: funlen
 
 			if topic == "" {
 				if repo == "" {
-					return errors.New("Error : supply topic or a repo")
+					return errors.New("error : supply topic or a repo")
 				}
 			}
 

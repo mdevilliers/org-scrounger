@@ -8,7 +8,6 @@ import (
 
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
-	"github.com/pkg/errors"
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
 )
@@ -29,11 +28,11 @@ func (k *kustomize) Images(ctx context.Context) ([]mapping.Image, error) {
 	for _, path := range k.paths {
 		content, err := runKustomize(path)
 		if err != nil {
-			return nil, errors.Wrap(err, "error running kustomize")
+			return nil, fmt.Errorf("error running kustomize: %w", err)
 		}
 		images, err := resolveImages(content, "unknown")
 		if err != nil {
-			return nil, errors.Wrap(err, "error extracting images")
+			return nil, fmt.Errorf("error extracting images: %w", err)
 		}
 
 		all = append(all, images...)
@@ -61,12 +60,12 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 		var n yaml.Node
 
 		if err := yaml.Unmarshal([]byte(yamlstr), &n); err != nil {
-			return nil, errors.Wrap(err, "error unmarshalling yaml")
+			return nil, fmt.Errorf("error unmarshalling yaml: %w", err)
 		}
 
 		namespaceElement, err := compileAndExecuteXpath("$..metadata.namespace", &n)
 		if err != nil {
-			return nil, errors.Wrap(err, "error running namespace xpath")
+			return nil, fmt.Errorf("error running namespace xpath: %w", err)
 		}
 		if len(namespaceElement) == 1 {
 			namespace = namespaceElement[0].Value
@@ -74,12 +73,12 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 
 		specElements, err := compileAndExecuteXpath("$..spec", &n)
 		if err != nil {
-			return nil, errors.Wrap(err, "error running spec xpath")
+			return nil, fmt.Errorf("error running spec xpath: %w", err)
 		}
 		for _, spec := range specElements {
 			imageElements, err := compileAndExecuteXpath("$..image", spec)
 			if err != nil {
-				return nil, errors.Wrap(err, "error running image xpath")
+				return nil, fmt.Errorf("error running image xpath: %w", err)
 			}
 			if len(imageElements) == 0 {
 				continue
@@ -87,7 +86,7 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 			// REVIEW : review this logic
 			replicas, err := parseReplicaCount(spec)
 			if err != nil {
-				return nil, errors.Wrap(err, "error running replicas xpath")
+				return nil, fmt.Errorf("error running replicas xpath: %w", err)
 			}
 			for _, element := range imageElements {
 				image, version := splitImageAndVersion(strings.TrimSpace(element.Value))
@@ -122,7 +121,7 @@ func resolveImages(probablyYaml, namespace string) ([]mapping.Image, error) { //
 func parseReplicaCount(n *yaml.Node) (int, error) {
 	replicasElement, err := compileAndExecuteXpath(".replicas", n)
 	if err != nil {
-		return 0, errors.Wrap(err, "error running replicas xpath")
+		return 0, fmt.Errorf("error running replicas xpath: %w", err)
 	}
 	if len(replicasElement) == 1 {
 		return strconv.Atoi(replicasElement[0].Value)
@@ -134,7 +133,7 @@ func parseReplicaCount(n *yaml.Node) (int, error) {
 func compileAndExecuteXpath(xpath string, document *yaml.Node) ([]*yaml.Node, error) {
 	path, err := yamlpath.NewPath(xpath)
 	if err != nil {
-		return nil, errors.Wrap(err, "error creating yaml path")
+		return nil, fmt.Errorf("error creating yaml path: %w", err)
 	}
 	return path.Find(document)
 }

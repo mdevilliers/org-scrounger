@@ -7,7 +7,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.0.0
 	github.com/alitto/pond v1.8.3
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.6.1
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.29.1
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
 	github.com/stretchr/testify v1.8.2
 	github.com/urfave/cli/v2 v2.25.1

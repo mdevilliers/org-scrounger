@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/mdevilliers/org-scrounger/pkg/util"
 	"github.com/shurcooL/githubv4"
 )
 
@@ -11,15 +12,8 @@ type Repository struct {
 	Name       githubv4.String  `json:"name"`
 	URL        githubv4.String  `json:"url"`
 	IsArchived githubv4.Boolean `json:"is_archived"`
-	Languages  struct {
-		Edges []struct {
-			Size githubv4.Int `json:"size"`
-		} `graphql:"edges" json:"edges"`
-		Nodes []struct {
-			Name githubv4.String `json:"name"`
-		} `json:"nodes"`
-	} `json:"languages" graphql:"languages(first:10)"`
-	Ref struct {
+	Languages  Languages        `json:"languages" graphql:"languages(first:10)"`
+	Ref        struct {
 		Target struct {
 			Commit struct {
 				Message           githubv4.String `json:"message"`
@@ -44,6 +38,29 @@ type Repository struct {
 	} `graphql:"repositoryTopics(first:10)" json:"repository_topics"`
 	PullRequests        `graphql:"pullRequests(last:30, states:[OPEN])" json:"pull_requests"`
 	VulnerabilityAlerts `graphql:"vulnerabilityAlerts(first:100, states:[OPEN])" json:"vulnerability_alerts"`
+}
+
+type Languages struct {
+	Edges []struct {
+		Size githubv4.Int `json:"size"`
+	} `graphql:"edges" json:"edges"`
+	Nodes []struct {
+		Name githubv4.String `json:"name"`
+	} `json:"nodes"`
+}
+
+func (l Languages) Top() string {
+
+	if len(l.Nodes) == 0 {
+		return ""
+	}
+
+	s := util.NewSet[string]()
+	for i, n := range l.Nodes {
+		s.AddWithValue(string(n.Name), int(l.Edges[i].Size))
+	}
+	ret, _ := s.TopValue()
+	return ret
 }
 
 type CheckRun struct {

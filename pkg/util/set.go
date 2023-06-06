@@ -24,6 +24,30 @@ func (s Set[T]) Add(c T) {
 	}
 }
 
+// Add an item, incrementing the count
+func (s Set[T]) AddWithValue(c T, n int) {
+	_, found := s[c]
+	if found {
+		s[c] += n
+	} else {
+		s[c] = n
+	}
+}
+
+// TopValue returns the key with the highest value and its value
+func (s Set[T]) TopValue() (T, int) {
+
+	n := 0
+	var ret T
+	for k, v := range s {
+		if v > n {
+			n = v
+			ret = k
+		}
+	}
+	return ret, n
+}
+
 // Keys returns a slice of keys
 func (s Set[T]) Keys() []T {
 	r := []T{}

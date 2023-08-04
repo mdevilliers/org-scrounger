@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func mgCmd() *cli.Command {
+func mgCmd() *cli.Command { //nolint:funlen
 	return &cli.Command{
 		Name: "mg",
 		Flags: []cli.Flag{
@@ -105,9 +105,11 @@ func mgCmd() *cli.Command {
 				if dryRun {
 					args = append(args, "--dry-run")
 				}
+
 				output, err := exec.GetCommandOutput(".", "multi-gitter", args...)
 				fmt.Println(output)
 				if err != nil {
+					// don;t return on first error
 					fmt.Println(err)
 				}
 			}

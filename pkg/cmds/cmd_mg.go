@@ -65,10 +65,6 @@ func mgCmd() *cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) error {
-			// multi-gitter run ./script.sh  --log-level=debug -R Adarga-Ltd/data-annotation-master
-			// -m "chore: update secret-key-orb"
-			// -B update-sk
-			// --git-type cmd
 
 			ctx := context.Background()
 			ghClient := gh.NewClientFromEnv(ctx)

@@ -104,7 +104,6 @@ func mgCmd() *cli.Command { //nolint:funlen
 					if !found {
 						continue
 					}
-
 				}
 				args := []string{
 					"run", scriptPath,
@@ -132,5 +131,5 @@ func mgCmd() *cli.Command { //nolint:funlen
 }
 
 func quote(in string) string {
-	return fmt.Sprintf("'%s'", in)
+	return fmt.Sprintf("\"%s\"", in)
 }

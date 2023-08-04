@@ -63,6 +63,12 @@ func mgCmd() *cli.Command { //nolint:funlen
 				Value: false,
 				Usage: "run without pushing changes or creating pull requests.",
 			},
+			&cli.StringFlag{
+				Name:     "lang",
+				Value:    "",
+				Usage:    "languge selector e.g Go",
+				Required: true,
+			},
 		},
 		Action: func(c *cli.Context) error {
 
@@ -79,6 +85,7 @@ func mgCmd() *cli.Command { //nolint:funlen
 			commitMessage := c.Value("commit-message").(string)
 			scriptPath := c.Value("script-path").(string)
 			dryRun := c.Value("dry-run").(bool)
+			lang := c.Value("lang").(string)
 
 			log := logging.GetRateLimitLogger(logRateLimit)
 
@@ -92,7 +99,13 @@ func mgCmd() *cli.Command { //nolint:funlen
 				if omitArchived && repo.IsArchived {
 					continue
 				}
+				if lang != "" { // naive predicate for languages used in the repo
+					_, found := repo.Languages[lang]
+					if !found {
+						continue
+					}
 
+				}
 				args := []string{
 					"run", scriptPath,
 					"--log-level", logLevel,

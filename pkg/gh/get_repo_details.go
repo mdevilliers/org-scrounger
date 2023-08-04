@@ -107,6 +107,7 @@ type PullRequest struct {
 	CreatedAt  githubv4.DateTime `json:"created_at"`
 	URL        githubv4.String   `json:"url"`
 	IsDraft    githubv4.Boolean  `json:"is_draft"`
+	Body       githubv4.String   `json:"body"`
 	Repository struct {
 		Name githubv4.String `json:"name"`
 	} `json:"repository"`
@@ -122,6 +123,15 @@ type PullRequest struct {
 			} `json:"commit"`
 		} `json:"nodes"`
 	} `graphql:"commits(last:1)" json:"commits"`
+	Comments struct {
+		TotalCount githubv4.Int `json:"total_count"`
+		Nodes      []struct {
+			Body   githubv4.String `json:"body"`
+			Author struct {
+				Login githubv4.String `json:"login"`
+			} `json:"author"`
+		} `json:"nodes"`
+	} `graphql:"comments(first:100)" json:"comments"`
 }
 
 func (p PullRequest) IsMergable() bool {

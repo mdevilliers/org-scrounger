@@ -14,5 +14,6 @@ func Commands() []*cli.Command {
 		reportCmd(),
 		listCmd(),
 		imagesCmd(),
+		mgCmd(),
 	}
 }

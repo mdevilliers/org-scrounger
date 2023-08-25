@@ -28,7 +28,7 @@ func (k *kustomize) Images(ctx context.Context) ([]mapping.Image, error) {
 	for _, path := range k.paths {
 		content, err := runKustomize(path)
 		if err != nil {
-			return nil, fmt.Errorf("error running kustomize: %w", err)
+			return nil, fmt.Errorf("error running kustomize: %w at %s", err, path)
 		}
 		images, err := resolveImages(content, "unknown")
 		if err != nil {

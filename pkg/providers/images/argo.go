@@ -94,7 +94,7 @@ func (a *argoProvider) Images(ctx context.Context) ([]mapping.Image, error) {
 			p := path.Join(root, app.Spec.Source.Path)
 			content, err = runKustomize(p)
 			if err != nil {
-				return nil, fmt.Errorf("error running kustomize: %w", err)
+				return nil, fmt.Errorf("error running kustomize: %w at %s", err, p)
 			}
 		}
 

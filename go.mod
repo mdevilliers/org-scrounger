@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/alecthomas/participle/v2 v2.0.0
+	github.com/alecthomas/participle/v2 v2.1.0
 	github.com/alitto/pond v1.8.3
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.7.0
 	github.com/rs/zerolog v1.30.0

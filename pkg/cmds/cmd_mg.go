@@ -64,10 +64,9 @@ func mgCmd() *cli.Command { //nolint:funlen
 				Usage: "run without pushing changes or creating pull requests.",
 			},
 			&cli.StringFlag{
-				Name:     "lang",
-				Value:    "",
-				Usage:    "languge selector e.g Go",
-				Required: true,
+				Name:  "lang",
+				Value: "",
+				Usage: "languge selector e.g Go",
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -131,5 +130,5 @@ func mgCmd() *cli.Command { //nolint:funlen
 }
 
 func quote(in string) string {
-	return fmt.Sprintf("\"%s\"", in)
+	return fmt.Sprintf("'%s'", in)
 }

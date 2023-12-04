@@ -10,7 +10,7 @@ require (
 	github.com/rs/zerolog v1.31.0
 	github.com/shurcooL/githubv4 v0.0.0-20220115235240-a14260e6f8a2
 	github.com/stretchr/testify v1.8.4
-	github.com/urfave/cli/v2 v2.25.7
+	github.com/urfave/cli/v2 v2.26.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	golang.org/x/exp v0.0.0-20220613132600-b0d781184e0d
 	golang.org/x/oauth2 v0.15.0

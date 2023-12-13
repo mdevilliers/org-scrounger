@@ -2,11 +2,11 @@ package mapping
 
 import (
 	"context"
+	"slices"
 	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
-	"golang.org/x/exp/slices"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -88,8 +88,8 @@ func (m *Mapper) Decorate(ctx context.Context, rg repoGetter, mg measureGetter, 
 				if len(measures.Measures) > 0 {
 					codeCoverage := measures.Measures[0]
 
-					slices.SortFunc(codeCoverage.History, func(a, b sonarcloud.History) bool {
-						return a.Time.After(b.Time.Time)
+					slices.SortFunc(codeCoverage.History, func(a, b sonarcloud.History) int {
+						return a.Time.Compare(b.Time.Time)
 					})
 
 					result.CodeCoverage.Value = measures.Measures[0].History[0].Value

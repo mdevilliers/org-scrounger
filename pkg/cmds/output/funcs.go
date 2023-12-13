@@ -1,12 +1,13 @@
 package output
 
 import (
+	"slices"
+	"strings"
 	"text/template"
 	"time"
 
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/shurcooL/githubv4"
-	"golang.org/x/exp/slices"
 )
 
 // FuncMap returns a map of registered templating helpers.
@@ -33,8 +34,10 @@ func PredicateOnSeverity(va gh.VulnerabilityAlerts, severity ...string) gh.Vulne
 			}
 		}
 	}
-	slices.SortFunc(ret.Edges, func(a, b gh.VulnerabilityAlertsEdge) bool {
-		return a.Node.SecurityVulnerability.Severity < b.Node.SecurityVulnerability.Severity
+	slices.SortFunc(ret.Edges, func(a, b gh.VulnerabilityAlertsEdge) int {
+		s := string(a.Node.SecurityVulnerability.Severity)
+		t := string(b.Node.SecurityVulnerability.Severity)
+		return strings.Compare(s, t)
 	})
 	return ret
 }

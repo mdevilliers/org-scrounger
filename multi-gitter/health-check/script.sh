@@ -10,11 +10,13 @@ if  [ ! -e .github/dependabot.yml ] ; then
   echo -e "\tmissing dependabot file" >> ${OUTPUT_FILE}
 fi
 
-# is it a golang project and does the build upgraded to dagger
+# is it a golang project
 if [ -e go.mod ] ; then
+  # does it have a ci file
   if [ ! -e .circleci/config.yml ] ; then 
-    echo -e "no circleci config file" >> ${OUTPUT_FILE}
+    echo -e "\tno circleci config file" >> ${OUTPUT_FILE}
   else
+    # is the repo upgraded to using Dagger
     grep "Run Dagger pipeline" .circleci/config.yml || echo -e "\tdagger not implemented" >> ${OUTPUT_FILE}
   fi
 fi

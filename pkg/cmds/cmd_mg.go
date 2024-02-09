@@ -135,7 +135,7 @@ func mgCmd() *cli.Command { //nolint:funlen
 					fmt.Println(err)
 				}
 
-				for k, _ := range scopedEnvVars {
+				for k := range scopedEnvVars {
 					os.Unsetenv(k)
 				}
 

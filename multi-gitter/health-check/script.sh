@@ -34,4 +34,14 @@ if [ -e go.mod ] ; then
   if  [ ! -e .github/workflows/gh-pages.yml ] ; then
     echo -e "\tmissing publishing docs workflow" >> ${OUTPUT_FILE}
   fi
+
+  # is the Docker file in the correct place
+  if [ ! -e ./docker/production/Dockerfile ] ; then 
+    echo -e "\tno production Dockerfile" >> ${OUTPUT_FILE}
+  else
+    grep "FROM gcr.io/distroless/static-debian11" ./docker/production/Dockerfile || echo -e "\tdockerfile not using distroless base image" >> ${OUTPUT_FILE}
+    grep "USER 65532" ./docker/production/Dockerfile || echo -e "\tdockerfile not running as well known user" >> ${OUTPUT_FILE}
+  fi
+    
+
 fi

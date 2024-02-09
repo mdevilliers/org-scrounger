@@ -101,7 +101,7 @@ func mgCmd() *cli.Command { //nolint:funlen
 					continue
 				}
 				if lang != "" { // naive predicate for languages used in the repo
-					if strings.ToLower(repo.Languages.Top()) != strings.ToLower(lang) {
+					if !strings.EqualFold(repo.Languages.Top(), lang) {
 						continue
 					}
 				}

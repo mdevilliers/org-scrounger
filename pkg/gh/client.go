@@ -25,11 +25,11 @@ type (
 		Summary string   `json:"summary"`
 	}
 	RepositorySlim struct {
-		Name       string         `json:"name"`
-		URL        string         `json:"url"`
-		IsArchived bool           `json:"is_archived"`
-		Topics     []string       `json:"topics"`
-		Languages  map[string]int `json:"languages"`
+		Name       string    `json:"name"`
+		URL        string    `json:"url"`
+		IsArchived bool      `json:"is_archived"`
+		Topics     []string  `json:"topics"`
+		Languages  Languages `json:"languages"`
 	}
 
 	client struct {

@@ -63,6 +63,14 @@ func (l Languages) Top() string {
 	return ret
 }
 
+func (l Languages) All() []string {
+	ret := []string{}
+	for _, n := range l.Nodes {
+		ret = append(ret, string(n.Name))
+	}
+	return ret
+}
+
 type CheckRun struct {
 	Name       githubv4.String `json:"name,omitempty"`
 	Summary    githubv4.String `json:"summary,omitempty"`

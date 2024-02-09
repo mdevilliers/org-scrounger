@@ -3,7 +3,7 @@
 # example usage
 # OUTPUT_FILE="${PWD}/output" ./scrng mg --owner foo --topic bar --omit-archived --dry-run --script-path ./multi-gitter/health-check/script.sh --branch na --commit-message na
 
-echo "${REPOSITORY}" >> ${OUTPUT_FILE}
+echo "${REPOSITORY} - [${LANGUAGE_PRIMARY}] ${TOPICS} " >> ${OUTPUT_FILE}
 
 # is there is a dependabot.yml file
 if  [ ! -e .github/dependabot.yml ] ; then

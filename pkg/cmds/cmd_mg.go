@@ -3,6 +3,8 @@ package cmds
 import (
 	"context"
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/logging"
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
@@ -99,8 +101,7 @@ func mgCmd() *cli.Command { //nolint:funlen
 					continue
 				}
 				if lang != "" { // naive predicate for languages used in the repo
-					_, found := repo.Languages[lang]
-					if !found {
+					if !strings.EqualFold(repo.Languages.Top(), lang) {
 						continue
 					}
 				}
@@ -117,12 +118,27 @@ func mgCmd() *cli.Command { //nolint:funlen
 					args = append(args, "--dry-run")
 				}
 
+				scopedEnvVars := map[string]string{
+					"LANGUAGES":        strings.Join(repo.Languages.All(), ","),
+					"LANGUAGE_PRIMARY": repo.Languages.Top(),
+					"TOPICS":           strings.Join(repo.Topics, ","),
+				}
+
+				for k, v := range scopedEnvVars {
+					os.Setenv(k, v)
+				}
+
 				output, err := exec.GetCommandOutput(".", "multi-gitter", args...)
 				fmt.Println(output)
 				if err != nil {
 					// don;t return on first error
 					fmt.Println(err)
 				}
+
+				for k := range scopedEnvVars {
+					os.Unsetenv(k)
+				}
+
 			}
 			return nil
 		},

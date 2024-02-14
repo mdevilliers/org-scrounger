@@ -42,6 +42,8 @@ if [ -e go.mod ] ; then
     grep "FROM gcr.io/distroless/static-debian11" ./docker/production/Dockerfile || echo -e "\tdockerfile not using distroless base image" >> ${OUTPUT_FILE}
     grep "USER 65532" ./docker/production/Dockerfile || echo -e "\tdockerfile not running as well known user" >> ${OUTPUT_FILE}
   fi
-    
+fi
 
+if [ -e .gitmodules ] ; then
+    echo -e "\tprobably using build-tools" >> ${OUTPUT_FILE}
 fi

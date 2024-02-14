@@ -10,7 +10,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 const (
@@ -37,11 +37,11 @@ var (
 	}
 )
 
-func GetFromCLIContext(ctx *cli.Context) (func(data any) error, error) {
-	out := ctx.Value("output").(string)
+func GetFromCLIContext(cmd *cli.Command) (func(data any) error, error) {
+	out := cmd.Value("output").(string)
 
-	if ctx.IsSet("template-file") {
-		templateFile := ctx.Value("template-file").(string)
+	if cmd.IsSet("template-file") {
+		templateFile := cmd.Value("template-file").(string)
 		return Templater(os.Stdout, templateFile)
 	}
 

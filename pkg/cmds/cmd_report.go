@@ -11,7 +11,7 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
 	"github.com/mdevilliers/org-scrounger/pkg/util"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func reportCmd() *cli.Command { //nolint: funlen
@@ -57,18 +57,17 @@ func reportCmd() *cli.Command { //nolint: funlen
 				Usage:   "specify repos to skip",
 			},
 		},
-		Action: func(c *cli.Context) error {
+		Action: func(ctx context.Context, c *cli.Command) error {
 
-			ctx := context.Background()
 			ghClient := gh.NewClientFromEnv(ctx)
 
-			topic := c.Value("topic").(string)
-			repo := c.Value("repo").(string)
-			owner := c.Value("owner").(string)
-			notReleased := c.Value("not-released").(cli.StringSlice)
-			skipList := c.Value("skip").(cli.StringSlice)
-			omitArchived := c.Value("omit-archived").(bool)
-			logRateLimit := c.Value("log-rate-limit").(bool)
+			topic := c.String("topic")
+			repo := c.String("repo")
+			owner := c.String("owner")
+			notReleased := c.StringSlice("not-released")
+			skipList := c.StringSlice("skip")
+			omitArchived := c.Bool("omit-archived")
+			logRateLimit := c.Bool("log-rate-limit")
 
 			log := logging.GetRateLimitLogger(logRateLimit)
 
@@ -120,7 +119,7 @@ func reportCmd() *cli.Command { //nolint: funlen
 					continue
 				}
 
-				if util.Contains(skipList.Value(), reponame) {
+				if util.Contains(skipList, reponame) {
 					continue
 				}
 
@@ -138,7 +137,7 @@ func reportCmd() *cli.Command { //nolint: funlen
 						Details: repoDetails,
 					}
 
-					if util.Contains(notReleased.Value(), reponame) {
+					if util.Contains(notReleased, reponame) {
 						unreleasedCommits, rateLimit, err := ghClient.GetUnreleasedCommitsForRepo(ctx, owner, reponame)
 						log(rateLimit)
 						if err != nil {

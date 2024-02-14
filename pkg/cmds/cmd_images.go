@@ -9,7 +9,7 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/mapping"
 	"github.com/mdevilliers/org-scrounger/pkg/providers/images"
 	"github.com/mdevilliers/org-scrounger/pkg/sonarcloud"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 type imageProvider interface {
@@ -19,7 +19,7 @@ type imageProvider interface {
 func imagesCmd() *cli.Command {
 	return &cli.Command{
 		Name: "images",
-		Subcommands: []*cli.Command{
+		Commands: []*cli.Command{
 			imagesArgoCommand(),
 			imagesJaegarCommand(),
 			imagesKustomizeCommand(),
@@ -46,11 +46,11 @@ func imagesArgoCommand() *cli.Command {
 			},
 			output.CLIOutputJSONFlag,
 		},
-		Action: func(c *cli.Context) error {
-			paths := c.Value("path").(cli.StringSlice)
-			deleteCache := c.Value("delete-cache-on-exit").(bool)
-			argo := images.NewArgo(deleteCache, paths.Value()...)
-			return getImages(c, argo)
+		Action: func(ctx context.Context, c *cli.Command) error {
+			paths := c.StringSlice("path")
+			deleteCache := c.Bool("delete-cache-on-exit")
+			argo := images.NewArgo(deleteCache, paths...)
+			return getImages(ctx, c, argo)
 		},
 	}
 }
@@ -70,10 +70,10 @@ func imagesKustomizeCommand() *cli.Command {
 			},
 			output.CLIOutputJSONFlag,
 		},
-		Action: func(c *cli.Context) error {
-			roots := c.Value("root").(cli.StringSlice)
-			kustomize := images.NewKustomize(roots.Value()...)
-			return getImages(c, kustomize)
+		Action: func(ctx context.Context, c *cli.Command) error {
+			roots := c.StringSlice("root")
+			kustomize := images.NewKustomize(roots...)
+			return getImages(ctx, c, kustomize)
 		},
 	}
 }
@@ -98,23 +98,21 @@ func imagesJaegarCommand() *cli.Command {
 			},
 			output.CLIOutputJSONFlag,
 		},
-		Action: func(c *cli.Context) error {
+		Action: func(ctx context.Context, c *cli.Command) error {
 
-			jaegarURL := c.Value("jaegar-url").(string)
-			traceID := c.Value("trace-id").(string)
+			jaegarURL := c.String("jaegar-url")
+			traceID := c.String("trace-id")
 
 			jaegar := images.NewJaegar(jaegarURL, traceID)
-			return getImages(c, jaegar)
+			return getImages(ctx, c, jaegar)
 		},
 	}
 }
 
-func getImages(c *cli.Context, provider imageProvider) error {
+func getImages(ctx context.Context, c *cli.Command, provider imageProvider) error {
 
-	ctx := context.Background()
-
-	mappingFile := c.Value("mapping").(string)
-	ghClient := gh.NewClientFromEnv(c.Context)
+	mappingFile := c.String("mapping")
+	ghClient := gh.NewClientFromEnv(ctx)
 
 	all, err := provider.Images(ctx)
 

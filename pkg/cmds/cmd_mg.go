@@ -9,7 +9,7 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/logging"
 	"github.com/mdevilliers/org-scrounger/pkg/exec"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func mgCmd() *cli.Command { //nolint:funlen
@@ -71,23 +71,23 @@ func mgCmd() *cli.Command { //nolint:funlen
 				Usage: "languge selector e.g Go",
 			},
 		},
-		Action: func(c *cli.Context) error {
+		Action: func(ctx context.Context, c *cli.Command) error {
 
-			ctx := context.Background()
 			ghClient := gh.NewClientFromEnv(ctx)
 
-			topic := c.Value("topic").(string)
-			owner := c.Value("owner").(string)
-			omitArchived := c.Value("omit-archived").(bool)
-			logRateLimit := c.Value("log-rate-limit").(bool)
+			topic := c.String("topic")
+			owner := c.String("owner")
+			omitArchived := c.Bool("omit-archived")
+			logRateLimit := c.Bool("log-rate-limit")
 
-			logLevel := c.Value("log-level").(string)
-			branchName := c.Value("branch").(string)
-			commitMessage := c.Value("commit-message").(string)
-			scriptPath := c.Value("script-path").(string)
-			dryRun := c.Value("dry-run").(bool)
-			lang := c.Value("lang").(string)
+			logLevel := c.String("log-level")
+			branchName := c.String("branch")
 
+			commitMessage := c.String("commit-message")
+
+			scriptPath := c.String("script-path")
+			dryRun := c.Bool("dry-run")
+			lang := c.String("lang")
 			log := logging.GetRateLimitLogger(logRateLimit)
 
 			repos, rateLimit, err := ghClient.GetReposWithTopic(ctx, owner, topic)
@@ -113,7 +113,6 @@ func mgCmd() *cli.Command { //nolint:funlen
 					"--commit-message", quote(commitMessage),
 					"--repo", fmt.Sprintf("%s/%s", owner, repo.Name),
 				}
-
 				if dryRun {
 					args = append(args, "--dry-run")
 				}
@@ -127,7 +126,6 @@ func mgCmd() *cli.Command { //nolint:funlen
 				for k, v := range scopedEnvVars {
 					os.Setenv(k, v)
 				}
-
 				output, err := exec.GetCommandOutput(".", "multi-gitter", args...)
 				fmt.Println(output)
 				if err != nil {
@@ -146,5 +144,5 @@ func mgCmd() *cli.Command { //nolint:funlen
 }
 
 func quote(in string) string {
-	return fmt.Sprintf("'%s'", in)
+	return fmt.Sprintf("\"%s\"", in)
 }

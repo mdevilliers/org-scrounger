@@ -6,7 +6,7 @@ import (
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/logging"
 	"github.com/mdevilliers/org-scrounger/pkg/cmds/output"
 	"github.com/mdevilliers/org-scrounger/pkg/gh"
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func listCmd() *cli.Command {
@@ -36,15 +36,14 @@ func listCmd() *cli.Command {
 				Usage: "log the rate limit metrics from github",
 			},
 		},
-		Action: func(c *cli.Context) error {
+		Action: func(ctx context.Context, c *cli.Command) error {
 
-			ctx := context.Background()
 			ghClient := gh.NewClientFromEnv(ctx)
 
-			topic := c.Value("topic").(string)
-			owner := c.Value("owner").(string)
-			omitArchived := c.Value("omit-archived").(bool)
-			logRateLimit := c.Value("log-rate-limit").(bool)
+			topic := c.String("topic")
+			owner := c.String("owner")
+			omitArchived := c.Bool("omit-archived")
+			logRateLimit := c.Bool("log-rate-limit")
 
 			log := logging.GetRateLimitLogger(logRateLimit)
 

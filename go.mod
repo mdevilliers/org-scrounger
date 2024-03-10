@@ -9,7 +9,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.8.1
 	github.com/rs/zerolog v1.32.0
 	github.com/shurcooL/githubv4 v0.0.0-20240120211514-18a1ae0e79dc
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 	github.com/urfave/cli/v3 v3.0.0-alpha9
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3

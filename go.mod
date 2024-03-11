@@ -13,7 +13,7 @@ require (
 	github.com/urfave/cli/v3 v3.0.0-alpha9
 	github.com/vmware-labs/yaml-jsonpath v0.3.2
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
-	golang.org/x/oauth2 v0.17.0
+	golang.org/x/oauth2 v0.18.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
